@@ -15,4 +15,9 @@ https://github.com/Klerith/fernando-skills
 npx skills@latest add Klerith/fernando-skills
 ```
 
-## se insstaló spec
+## Commands
+
+- `npm run dev` — start the dev server (Next.js, Turbopack by default)
+- `npm run build` — production build
+- `npm run start` — run the production build
+- `npm run lint` — ESLint via `eslint.config.mjs` (flat config, `eslint-config-next` core-web-vitals + typescript rules)
