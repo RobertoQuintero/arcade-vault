@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { GAMES } from "@/lib/games";
+import { MiniGameCard } from "@/components/mini-game-card";
 
 function FloatingSilhouettes() {
   return (
@@ -151,6 +153,24 @@ export default function Home() {
               <div className="ft-desc">{f.d}</div>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="home-section reveal">
+        <div className="section-head">
+          <div className="kicker pixel neon-cyan">// 02</div>
+          <h2 className="section-title">JUEGOS DISPONIBLES AHORA</h2>
+          <div className="section-rule"></div>
+        </div>
+        <div className="mini-rail">
+          {GAMES.slice(0, 6).map((g) => (
+            <MiniGameCard key={g.id} game={g} />
+          ))}
+        </div>
+        <div style={{ textAlign: "center", marginTop: 24 }}>
+          <Link href="/games" className="btn lg">
+            VER TODOS LOS JUEGOS →
+          </Link>
         </div>
       </section>
     </div>
