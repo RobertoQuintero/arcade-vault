@@ -117,6 +117,32 @@ const PLAYERS = [
   "DROID_X", "RGB_QUEEN", "PIXEL_DAD", "RETROVIRA", "VECTORX", "JOY_STK",
 ];
 
+const ACTIVITY_AGO = [
+  "hace 2 min",
+  "hace 5 min",
+  "hace 8 min",
+  "hace 12 min",
+  "hace 18 min",
+  "hace 24 min",
+  "hace 31 min",
+];
+
+export interface ActivityRow {
+  title: string;
+  score: number;
+  color: Game["color"];
+  ago: string;
+}
+
+export function activityFeed(): ActivityRow[] {
+  return GAMES.filter((g) => g.id !== "duelo-pixel").map((g, i) => ({
+    title: g.title,
+    score: g.best,
+    color: g.color,
+    ago: ACTIVITY_AGO[i],
+  }));
+}
+
 export interface ScoreRow {
   rank: number;
   name: string;
