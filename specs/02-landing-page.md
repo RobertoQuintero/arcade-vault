@@ -94,3 +94,4 @@ La lista "Top Jugadores · Hoy" se mantiene como arreglo estático de marcador d
 - **Portar solo el subconjunto de CSS que usa `home.jsx`** (tomada), no el archivo `home-about/styles.css` completo: evita arrastrar clases de About (`about-*`, `contact-*`) y de elementos decorativos no usados (`gp-*` del gamepad), que no aplican a este spec.
 - **Sin redirección desde la antigua Biblioteca en `/`** (descartada): se consideró agregar un redirect o alias, pero no fue solicitado y el proyecto no tiene usuarios con enlaces guardados que proteger.
 - **Incluir `duelo-pixel` en el ticker con su valor real** (descartada): se prefirió excluirlo por la inconsistencia de escala frente a incluir un dato que se ve como un error visual.
+
