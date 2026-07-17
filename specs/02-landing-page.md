@@ -1,6 +1,6 @@
 # 02 — Landing page de Arcade Vault
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Dependencias:** SPEC 01 (MVP visual)
 - **Fecha:** 2026-07-17
 
