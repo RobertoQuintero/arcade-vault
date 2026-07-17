@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function useReveal() {
   useEffect(() => {
@@ -82,6 +84,28 @@ function HighlightIcon({ kind }: { kind: HighlightIconKind }) {
 export default function About() {
   useReveal();
 
+  const [form, setForm] = useState({ name: "", email: "", msg: "" });
+  const [shake, setShake] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!form.name.trim() || !form.email.trim() || !form.msg.trim()) {
+      setEmailError(null);
+      setShake(true);
+      setTimeout(() => setShake(false), 400);
+      return;
+    }
+
+    if (!EMAIL_RE.test(form.email.trim())) {
+      setEmailError("Ingresa un correo válido.");
+      return;
+    }
+
+    setEmailError(null);
+  };
+
   return (
     <div className="about fade-in">
       <section className="about-hero">
@@ -112,6 +136,70 @@ export default function About() {
         </div>
         <div className="div-bar"></div>
       </div>
+
+      <section className="about-contact reveal">
+        <div className="contact-grid">
+          <div className="contact-intro">
+            <div className="kicker pixel neon-cyan">▸ CONTACTO</div>
+            <h2 className="contact-title">CONTÁCTANOS</h2>
+            <p className="contact-sub">
+              ¿Tienes alguna sugerencia, quieres proponer un juego, o simplemente quieres saludar?
+              Escríbenos.
+            </p>
+            <div className="contact-tips">
+              <div className="tip">
+                <span className="tip-led"></span>RESPUESTA EN 24-48H
+              </div>
+              <div className="tip">
+                <span className="tip-led y"></span>SUGERENCIAS BIENVENIDAS
+              </div>
+              <div className="tip">
+                <span className="tip-led m"></span>SIN SPAM, JAMÁS
+              </div>
+            </div>
+          </div>
+
+          <form className={"contact-form" + (shake ? " shake" : "")} onSubmit={onSubmit}>
+            <div className="field">
+              <label>NOMBRE</label>
+              <input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="px_kai"
+              />
+            </div>
+            <div className="field">
+              <label>CORREO ELECTRÓNICO</label>
+              <input
+                type="email"
+                value={form.email}
+                onChange={(e) => {
+                  setForm({ ...form, email: e.target.value });
+                  setEmailError(null);
+                }}
+                placeholder="jugador@vault.gg"
+              />
+              {emailError && (
+                <div className="mono" style={{ color: "var(--magenta)", fontSize: 12 }}>
+                  {emailError}
+                </div>
+              )}
+            </div>
+            <div className="field">
+              <label>MENSAJE</label>
+              <textarea
+                rows={5}
+                value={form.msg}
+                onChange={(e) => setForm({ ...form, msg: e.target.value })}
+                placeholder="Cuéntanos qué tienes en mente…"
+              ></textarea>
+            </div>
+            <button className="btn xl press" type="submit" style={{ width: "100%" }}>
+              ▶ ENVIAR MENSAJE
+            </button>
+          </form>
+        </div>
+      </section>
     </div>
   );
 }
