@@ -45,11 +45,11 @@ export function Nav() {
           <Link href="/games" className={isLibraryActive ? "active" : ""}>
             Biblioteca
           </Link>
-          <Link href="/about" className={isAboutActive ? "active" : ""}>
-            Acerca de
-          </Link>
           <Link href="/hall-of-fame" className={isHallActive ? "active" : ""}>
             Salón de la Fama
+          </Link>
+          <Link href="/about" className={isAboutActive ? "active" : ""}>
+            Acerca de
           </Link>
         </div>
         <div className="spacer"></div>
