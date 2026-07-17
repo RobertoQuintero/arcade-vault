@@ -1,8 +1,28 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { GAMES, activityFeed } from "@/lib/games";
 import { MiniGameCard } from "@/components/mini-game-card";
+
+function useReveal() {
+  useEffect(() => {
+    const els = document.querySelectorAll(".reveal");
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add("in");
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+}
 
 function FloatingSilhouettes() {
   return (
@@ -102,6 +122,7 @@ function FloatingSilhouettes() {
 }
 
 export default function Home() {
+  useReveal();
   return (
     <div className="home fade-in">
       <section className="home-hero">
