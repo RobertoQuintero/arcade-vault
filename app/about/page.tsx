@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { sendContactMessage } from "./actions";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -87,6 +88,9 @@ export default function About() {
   const [form, setForm] = useState({ name: "", email: "", msg: "" });
   const [shake, setShake] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
+  const [sentName, setSentName] = useState<string | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,6 +108,26 @@ export default function About() {
     }
 
     setEmailError(null);
+    setSendError(null);
+
+    const name = form.name.trim();
+    const email = form.email.trim();
+    const msg = form.msg.trim();
+
+    startTransition(async () => {
+      const result = await sendContactMessage(name, email, msg);
+      if (result.status === "success") {
+        setSentName(name);
+      } else {
+        setSendError(result.message);
+      }
+    });
+  };
+
+  const onResend = () => {
+    setSentName(null);
+    setSendError(null);
+    setForm({ name: "", email: "", msg: "" });
   };
 
   return (
@@ -160,43 +184,81 @@ export default function About() {
           </div>
 
           <form className={"contact-form" + (shake ? " shake" : "")} onSubmit={onSubmit}>
-            <div className="field">
-              <label>NOMBRE</label>
-              <input
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="px_kai"
-              />
-            </div>
-            <div className="field">
-              <label>CORREO ELECTRÓNICO</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => {
-                  setForm({ ...form, email: e.target.value });
-                  setEmailError(null);
-                }}
-                placeholder="jugador@vault.gg"
-              />
-              {emailError && (
-                <div className="mono" style={{ color: "var(--magenta)", fontSize: 12 }}>
-                  {emailError}
+            {!sentName ? (
+              <>
+                <div className="field">
+                  <label>NOMBRE</label>
+                  <input
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    placeholder="px_kai"
+                    disabled={isPending}
+                  />
                 </div>
-              )}
-            </div>
-            <div className="field">
-              <label>MENSAJE</label>
-              <textarea
-                rows={5}
-                value={form.msg}
-                onChange={(e) => setForm({ ...form, msg: e.target.value })}
-                placeholder="Cuéntanos qué tienes en mente…"
-              ></textarea>
-            </div>
-            <button className="btn xl press" type="submit" style={{ width: "100%" }}>
-              ▶ ENVIAR MENSAJE
-            </button>
+                <div className="field">
+                  <label>CORREO ELECTRÓNICO</label>
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => {
+                      setForm({ ...form, email: e.target.value });
+                      setEmailError(null);
+                    }}
+                    placeholder="jugador@vault.gg"
+                    disabled={isPending}
+                  />
+                  {emailError && (
+                    <div className="mono" style={{ color: "var(--magenta)", fontSize: 12 }}>
+                      {emailError}
+                    </div>
+                  )}
+                </div>
+                <div className="field">
+                  <label>MENSAJE</label>
+                  <textarea
+                    rows={5}
+                    value={form.msg}
+                    onChange={(e) => setForm({ ...form, msg: e.target.value })}
+                    placeholder="Cuéntanos qué tienes en mente…"
+                    disabled={isPending}
+                  ></textarea>
+                </div>
+                <button className="btn xl press" type="submit" style={{ width: "100%" }} disabled={isPending}>
+                  {isPending ? "ENVIANDO..." : "▶ ENVIAR MENSAJE"}
+                </button>
+                {sendError && (
+                  <div className="mono" style={{ color: "var(--magenta)", fontSize: 12, marginTop: 12 }}>
+                    {sendError}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="terminal-success">
+                <div className="term-bar">
+                  <span className="dot r"></span>
+                  <span className="dot y"></span>
+                  <span className="dot g"></span>
+                  <span className="term-title">VAULT-OS // TERMINAL</span>
+                </div>
+                <div className="term-body">
+                  <div className="line">
+                    <span className="prompt">vault@arcade:~$</span> ./send_message --to=team
+                  </div>
+                  <div className="line dim">[OK] Conectando con servidor…</div>
+                  <div className="line dim">[OK] Validando contenido…</div>
+                  <div className="line dim">[OK] Transmitiendo paquete…</div>
+                  <div className="line success">
+                    &gt; MENSAJE RECIBIDO. TE RESPONDEREMOS PRONTO. GRACIAS,{" "}
+                    {sentName.toUpperCase()}.<span className="caret">_</span>
+                  </div>
+                  <div style={{ marginTop: 18 }}>
+                    <button className="btn ghost" type="button" onClick={onResend}>
+                      ENVIAR OTRO MENSAJE
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </form>
         </div>
       </section>
