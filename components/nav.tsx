@@ -2,21 +2,18 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { getUser, setUser as persistUser, type StoredUser } from "@/lib/storage";
+import { useState } from "react";
+import { useSessionUser, signOutSession } from "@/lib/session-user";
 
 export function Nav() {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [user, setUserState] = useState<StoredUser | null>(null);
-
-  useEffect(() => {
-    setUserState(getUser());
-  }, [pathname]);
+  const user = useSessionUser();
 
   const isHomeActive = pathname === "/";
-  const isLibraryActive = pathname === "/games" || pathname.startsWith("/games/");
+  const isLibraryActive =
+    pathname === "/games" || pathname.startsWith("/games/");
   const isAboutActive = pathname === "/about";
   const isHallActive = pathname === "/hall-of-fame";
   const isAuthActive = pathname === "/auth";
@@ -24,8 +21,7 @@ export function Nav() {
   const close = () => setOpen(false);
 
   const handleSignOut = () => {
-    persistUser(null);
-    setUserState(null);
+    signOutSession();
     router.push("/");
   };
 
@@ -80,28 +76,51 @@ export function Nav() {
         onClick={close}
       ></div>
       <aside className={"av-mobile-panel" + (open ? " open" : "")}>
-        <div className="pixel neon-cyan" style={{ fontSize: 11, marginBottom: 16 }}>
+        <div
+          className="pixel neon-cyan"
+          style={{ fontSize: 11, marginBottom: 16 }}
+        >
           MENÚ
         </div>
         <Link href="/" className={isHomeActive ? "active" : ""} onClick={close}>
           Inicio
         </Link>
-        <Link href="/games" className={isLibraryActive ? "active" : ""} onClick={close}>
+        <Link
+          href="/games"
+          className={isLibraryActive ? "active" : ""}
+          onClick={close}
+        >
           Biblioteca
         </Link>
-        <Link href="/about" className={isAboutActive ? "active" : ""} onClick={close}>
+        <Link
+          href="/about"
+          className={isAboutActive ? "active" : ""}
+          onClick={close}
+        >
           Acerca de
         </Link>
-        <Link href="/hall-of-fame" className={isHallActive ? "active" : ""} onClick={close}>
+        <Link
+          href="/hall-of-fame"
+          className={isHallActive ? "active" : ""}
+          onClick={close}
+        >
           Salón de la Fama
         </Link>
-        <Link href="/auth" className={isAuthActive ? "active" : ""} onClick={close}>
+        <Link
+          href="/auth"
+          className={isAuthActive ? "active" : ""}
+          onClick={close}
+        >
           {user ? "Cuenta" : "Iniciar Sesión"}
         </Link>
         <div style={{ flex: 1 }}></div>
         <div
           className="pixel"
-          style={{ fontSize: 9, color: "var(--ink-faint)", letterSpacing: "0.16em" }}
+          style={{
+            fontSize: 9,
+            color: "var(--ink-faint)",
+            letterSpacing: "0.16em",
+          }}
         >
           CRÉDITOS · 03
         </div>
