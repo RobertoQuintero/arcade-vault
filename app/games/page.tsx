@@ -3,14 +3,18 @@
 import { useMemo, useState } from "react";
 import { GAMES, CATS } from "@/lib/games";
 import { GameCard } from "@/components/game-card";
+import { GameTable } from "@/components/game-table";
 
 export default function GamesPage() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<(typeof CATS)[number]>("TODOS");
+  const [view, setView] = useState<"grid" | "table">("grid");
 
   const filtered = useMemo(() => {
     return GAMES.filter(
-      (g) => (cat === "TODOS" || g.cat === cat) && g.title.toLowerCase().includes(q.toLowerCase())
+      (g) =>
+        (cat === "TODOS" || g.cat === cat) &&
+        g.title.toLowerCase().includes(q.toLowerCase()),
     );
   }, [q, cat]);
 
@@ -43,13 +47,26 @@ export default function GamesPage() {
             </button>
           ))}
         </div>
+        <div className="view-toggle">
+          <button
+            className={view === "grid" ? "active" : ""}
+            onClick={() => setView("grid")}
+            aria-pressed={view === "grid"}
+          >
+            <span className="glyph">▦</span>GRID
+          </button>
+          <button
+            className={view === "table" ? "active" : ""}
+            onClick={() => setView("table")}
+            aria-pressed={view === "table"}
+          >
+            <span className="glyph">☰</span>TABLA
+          </button>
+        </div>
       </div>
 
-      <div className="av-grid">
-        {filtered.map((g) => (
-          <GameCard key={g.id} game={g} />
-        ))}
-        {filtered.length === 0 && (
+      {filtered.length === 0 ? (
+        <div className="av-grid">
           <div
             style={{
               gridColumn: "1 / -1",
@@ -60,14 +77,26 @@ export default function GamesPage() {
           >
             <div
               className="pixel"
-              style={{ fontSize: 14, color: "var(--magenta)", marginBottom: 12 }}
+              style={{
+                fontSize: 14,
+                color: "var(--magenta)",
+                marginBottom: 12,
+              }}
             >
               NO HAY RESULTADOS
             </div>
             <div>Intenta otra búsqueda o categoría.</div>
           </div>
-        )}
-      </div>
+        </div>
+      ) : view === "grid" ? (
+        <div className="av-grid">
+          {filtered.map((g) => (
+            <GameCard key={g.id} game={g} />
+          ))}
+        </div>
+      ) : (
+        <GameTable games={filtered} />
+      )}
     </div>
   );
 }

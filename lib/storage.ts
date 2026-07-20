@@ -1,3 +1,5 @@
+import { createClient } from "@/lib/supabase/client";
+
 export interface StoredUser {
   name: string;
 }
@@ -33,15 +35,6 @@ export function setUser(user: StoredUser | null): void {
   }
 }
 
-async function getSupabaseClient() {
-  if (typeof window === "undefined") {
-    const { createClient } = await import("@/lib/supabase/server");
-    return createClient();
-  }
-  const { createClient } = await import("@/lib/supabase/client");
-  return createClient();
-}
-
 function formatDate(iso: string): string {
   const d = new Date(iso);
   const day = String(d.getDate()).padStart(2, "0");
@@ -50,7 +43,7 @@ function formatDate(iso: string): string {
 }
 
 export async function saveScore(entry: ScoreEntry): Promise<void> {
-  const supabase = await getSupabaseClient();
+  const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -69,7 +62,7 @@ export async function getScoresForGame(
   gameId: string,
   limit = 10,
 ): Promise<ScoreRow[]> {
-  const supabase = await getSupabaseClient();
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("scores")
     .select("name, score, created_at")
