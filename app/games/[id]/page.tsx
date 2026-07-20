@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { GAMES, seededScores } from "@/lib/games";
+import { GAMES } from "@/lib/games";
+import { getScoresForGame } from "@/lib/storage";
 
 export default async function GameDetailPage({
   params,
@@ -11,7 +12,7 @@ export default async function GameDetailPage({
   const game = GAMES.find((g) => g.id === id);
   if (!game) notFound();
 
-  const scores = seededScores(id.length * 17 + 3, 10);
+  const scores = await getScoresForGame(game.id, 10);
 
   return (
     <div className="av-detail fade-in">
@@ -37,7 +38,10 @@ export default async function GameDetailPage({
               <div className="l">Mejor global</div>
               <div
                 className="v"
-                style={{ color: "var(--magenta)", textShadow: "0 0 6px rgba(255,0,110,0.5)" }}
+                style={{
+                  color: "var(--magenta)",
+                  textShadow: "0 0 6px rgba(255,0,110,0.5)",
+                }}
               >
                 {game.best.toLocaleString("es-ES")}
               </div>
@@ -46,7 +50,10 @@ export default async function GameDetailPage({
               <div className="l">Dificultad</div>
               <div
                 className="v"
-                style={{ color: "var(--yellow)", textShadow: "0 0 6px rgba(245,255,0,0.5)" }}
+                style={{
+                  color: "var(--yellow)",
+                  textShadow: "0 0 6px rgba(245,255,0,0.5)",
+                }}
               >
                 ★ ★ ★ ☆ ☆
               </div>
@@ -66,15 +73,36 @@ export default async function GameDetailPage({
       <aside>
         <div className="leaderboard">
           <h3>MEJORES PUNTUACIONES</h3>
+          {scores.length === 0 && (
+            <div
+              className="mono"
+              style={{
+                color: "var(--ink-faint)",
+                fontSize: 12,
+                letterSpacing: "0.08em",
+              }}
+            >
+              AÚN NO HAY PUNTUACIONES GUARDADAS
+            </div>
+          )}
           {scores.map((r, i) => (
             <div
               key={r.name}
-              className={"lb-row" + (i === 0 ? " top1" : i === 1 ? " top2" : i === 2 ? " top3" : "")}
+              className={
+                "lb-row" +
+                (i === 0 ? " top1" : i === 1 ? " top2" : i === 2 ? " top3" : "")
+              }
             >
               <div className="rk">#{String(r.rank).padStart(2, "0")}</div>
               <div className="pl">
                 {r.name}
-                <div style={{ fontSize: 10, color: "var(--ink-faint)", letterSpacing: "0.1em" }}>
+                <div
+                  style={{
+                    fontSize: 10,
+                    color: "var(--ink-faint)",
+                    letterSpacing: "0.1em",
+                  }}
+                >
                   {r.date}
                 </div>
               </div>
