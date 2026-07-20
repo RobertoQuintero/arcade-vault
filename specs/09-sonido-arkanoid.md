@@ -1,6 +1,6 @@
 # 09 — Sonido en Arkanoid (paddle y bloques)
 
-- **Estado:** Implemantado
+- **Estado:** Implementado
 - **Dependencias:** SPEC 08 (Arkanoid real — define `ArkanoidEngine`, `EngineSnapshot` y `arkanoid-canvas.tsx`; esta spec extiende ambos sin tocar su contrato base de gameplay)
 - **Fecha:** 2026-07-20
 

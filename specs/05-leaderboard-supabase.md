@@ -1,6 +1,6 @@
 # 05 — Leaderboard real con Supabase y vista de tabla del catálogo
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Dependencias:** SPEC 01 (MVP visual — define `GAMES`, `seededScores`, `lib/storage.ts`), SPEC 04 (Asteroids real — único juego con `saveScore` conectado a lógica real de juego); usa el cliente/servidor de Supabase ya configurado en `lib/supabase/` (sin tablas creadas aún — este spec crea la primera)
 - **Fecha:** 2026-07-19
 

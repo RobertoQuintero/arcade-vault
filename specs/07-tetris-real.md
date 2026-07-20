@@ -1,6 +1,6 @@
 # 07 — Juego real de Tetris
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Dependencias:** SPEC 04 (Asteroids real — define el contrato de motor `<Id>Engine`/`EngineSnapshot` y el patrón canvas), SPEC 06 (catálogo vía Supabase — `games` ya es data-driven)
 - **Fecha:** 2026-07-20
 
