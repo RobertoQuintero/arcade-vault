@@ -1,6 +1,6 @@
 # 08 — Juego real de Arkanoid
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Dependencias:** SPEC 04 (Asteroids real — define el contrato de motor `<Id>Engine`/`EngineSnapshot`, el patrón canvas y el registro `components/games/registry.ts`), SPEC 07 (Tetris real — segundo juego portado, confirma que agregar un motor nuevo solo toca una línea del registro), SPEC 06 (catálogo vía Supabase — `games` ya es data-driven)
 - **Fecha:** 2026-07-20
 

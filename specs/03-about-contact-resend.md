@@ -1,6 +1,6 @@
 # 03 — Página "Acerca de" con envío de contacto por email
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Dependencias:** SPEC 01 (MVP visual), SPEC 02 (Landing page — dejó pendiente el link "Acerca de" en el nav)
 - **Fecha:** 2026-07-17
 
