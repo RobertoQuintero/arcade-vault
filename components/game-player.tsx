@@ -6,13 +6,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Game } from "@/lib/games";
 import { saveScore } from "@/lib/storage";
 import { useSessionUser } from "@/lib/session-user";
-import { AsteroidsCanvas } from "@/components/games/asteroids/asteroids-canvas";
-import type { EngineSnapshot } from "@/components/games/asteroids/engine";
+import { GAME_CANVASES } from "@/components/games/registry";
+import type { EngineSnapshot } from "@/components/games/registry";
 
 export function GamePlayer({ game }: { game: Game }) {
   const router = useRouter();
   const sessionUser = useSessionUser();
-  const isAsteroids = game.id === "asteroids";
+  const Canvas = GAME_CANVASES[game.id];
+  const isReal = Boolean(Canvas);
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
   const [level, setLevel] = useState(1);
@@ -30,19 +31,19 @@ export function GamePlayer({ game }: { game: Game }) {
   }, [sessionUser]);
 
   useEffect(() => {
-    if (isAsteroids) return;
+    if (isReal) return;
     if (over || paused) return;
     const t = setInterval(
       () => setScore((s) => s + Math.floor(10 + Math.random() * 90)),
       220,
     );
     return () => clearInterval(t);
-  }, [isAsteroids, over, paused]);
+  }, [isReal, over, paused]);
 
   useEffect(() => {
-    if (isAsteroids) return;
+    if (isReal) return;
     if (score > 0 && score % 2500 < 100) setLevel((l) => l + 1);
-  }, [isAsteroids, score]);
+  }, [isReal, score]);
 
   const handleSnapshot = useCallback((snapshot: EngineSnapshot) => {
     setScore(snapshot.score);
@@ -52,7 +53,7 @@ export function GamePlayer({ game }: { game: Game }) {
   }, []);
 
   const endGame = () => {
-    if (isAsteroids) {
+    if (isReal) {
       forceEndRef.current?.();
     } else {
       setOver(true);
@@ -65,7 +66,7 @@ export function GamePlayer({ game }: { game: Game }) {
     setPaused(false);
     setOver(false);
     setSaveState("idle");
-    if (isAsteroids) setRestartKey((k) => k + 1);
+    if (isReal) setRestartKey((k) => k + 1);
   };
 
   return (
@@ -109,8 +110,8 @@ export function GamePlayer({ game }: { game: Game }) {
 
       <div className="crt">
         <div className="crt-screen">
-          {isAsteroids ? (
-            <AsteroidsCanvas
+          {isReal && Canvas ? (
+            <Canvas
               key={restartKey}
               paused={paused}
               onSnapshot={handleSnapshot}
