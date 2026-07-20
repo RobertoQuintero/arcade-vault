@@ -1,6 +1,6 @@
 # 04 — Juego real de Asteroids
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Dependencias:** SPEC 01 (MVP visual — define `GAMES`, `GamePlayer`, `saveScore`)
 - **Fecha:** 2026-07-19
 
