@@ -19,7 +19,9 @@ export function GamePlayer({ game }: { game: Game }) {
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
   const [name, setName] = useState("INVITADO");
-  const [saved, setSaved] = useState(false);
+  const [saveState, setSaveState] = useState<
+    "idle" | "pending" | "saved" | "error"
+  >("idle");
   const [restartKey, setRestartKey] = useState(0);
   const forceEndRef = useRef<(() => void) | null>(null);
 
@@ -62,7 +64,7 @@ export function GamePlayer({ game }: { game: Game }) {
     setLives(3);
     setPaused(false);
     setOver(false);
-    setSaved(false);
+    setSaveState("idle");
     if (isAsteroids) setRestartKey((k) => k + 1);
   };
 
@@ -160,7 +162,7 @@ export function GamePlayer({ game }: { game: Game }) {
             <h2>FIN DEL JUEGO</h2>
             <div className="final-label">PUNTUACIÓN FINAL</div>
             <div className="final">{score.toLocaleString("es-ES")}</div>
-            {!saved ? (
+            {saveState !== "saved" ? (
               <div className="input-row">
                 <input
                   value={name}
@@ -168,16 +170,33 @@ export function GamePlayer({ game }: { game: Game }) {
                     setName(e.target.value.toUpperCase().slice(0, 10))
                   }
                   placeholder="TUS INICIALES"
+                  disabled={saveState === "pending"}
                 />
                 <button
                   className="btn yellow"
+                  disabled={saveState === "pending"}
                   onClick={async () => {
-                    await saveScore({ game: game.id, score, name });
-                    setSaved(true);
+                    setSaveState("pending");
+                    try {
+                      await saveScore({ game: game.id, score, name });
+                      setSaveState("saved");
+                    } catch {
+                      setSaveState("error");
+                    }
                   }}
                 >
-                  GUARDAR PUNTUACIÓN
+                  {saveState === "pending"
+                    ? "GUARDANDO..."
+                    : "GUARDAR PUNTUACIÓN"}
                 </button>
+                {saveState === "error" && (
+                  <div
+                    className="mono"
+                    style={{ color: "var(--magenta)", fontSize: 12 }}
+                  >
+                    No se pudo guardar la puntuación. Inténtalo de nuevo.
+                  </div>
+                )}
               </div>
             ) : (
               <div className="toast-saved">▸ PUNTUACIÓN GUARDADA_</div>
