@@ -1,6 +1,6 @@
 # 10 — Juego real de Snake
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Dependencias:** SPEC 04 (Asteroids real — define el contrato de motor `<Id>Engine`/`EngineSnapshot` y el patrón canvas), SPEC 06 (catálogo vía Supabase — `games` ya es data-driven), SPEC 07 (Tetris real — primera alta de `components/games/registry.ts`, ya existente)
 - **Fecha:** 2026-07-20
 
