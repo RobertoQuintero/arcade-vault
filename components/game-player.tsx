@@ -2,46 +2,68 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Game } from "@/lib/games";
 import { saveScore } from "@/lib/storage";
 import { useSessionUser } from "@/lib/session-user";
+import { AsteroidsCanvas } from "@/components/games/asteroids/asteroids-canvas";
+import type { EngineSnapshot } from "@/components/games/asteroids/engine";
 
 export function GamePlayer({ game }: { game: Game }) {
   const router = useRouter();
   const sessionUser = useSessionUser();
+  const isAsteroids = game.id === "asteroids";
   const [score, setScore] = useState(0);
-  const [lives] = useState(3);
+  const [lives, setLives] = useState(3);
   const [level, setLevel] = useState(1);
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
   const [name, setName] = useState("INVITADO");
   const [saved, setSaved] = useState(false);
+  const [restartKey, setRestartKey] = useState(0);
+  const forceEndRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (sessionUser) setName(sessionUser.name);
   }, [sessionUser]);
 
   useEffect(() => {
+    if (isAsteroids) return;
     if (over || paused) return;
     const t = setInterval(
       () => setScore((s) => s + Math.floor(10 + Math.random() * 90)),
       220,
     );
     return () => clearInterval(t);
-  }, [over, paused]);
+  }, [isAsteroids, over, paused]);
 
   useEffect(() => {
+    if (isAsteroids) return;
     if (score > 0 && score % 2500 < 100) setLevel((l) => l + 1);
-  }, [score]);
+  }, [isAsteroids, score]);
 
-  const endGame = () => setOver(true);
+  const handleSnapshot = useCallback((snapshot: EngineSnapshot) => {
+    setScore(snapshot.score);
+    setLives(snapshot.lives);
+    setLevel(snapshot.level);
+    if (snapshot.state === "gameover") setOver(true);
+  }, []);
+
+  const endGame = () => {
+    if (isAsteroids) {
+      forceEndRef.current?.();
+    } else {
+      setOver(true);
+    }
+  };
   const restart = () => {
     setScore(0);
     setLevel(1);
+    setLives(3);
     setPaused(false);
     setOver(false);
     setSaved(false);
+    if (isAsteroids) setRestartKey((k) => k + 1);
   };
 
   return (
@@ -85,13 +107,22 @@ export function GamePlayer({ game }: { game: Game }) {
 
       <div className="crt">
         <div className="crt-screen">
-          <div className="game-arena">
-            <div className="grid-floor"></div>
-            <div className="enemy e1"></div>
-            <div className="enemy e2"></div>
-            <div className="enemy e3"></div>
-            <div className="player-ship"></div>
-          </div>
+          {isAsteroids ? (
+            <AsteroidsCanvas
+              key={restartKey}
+              paused={paused}
+              onSnapshot={handleSnapshot}
+              forceEndRef={forceEndRef}
+            />
+          ) : (
+            <div className="game-arena">
+              <div className="grid-floor"></div>
+              <div className="enemy e1"></div>
+              <div className="enemy e2"></div>
+              <div className="enemy e3"></div>
+              <div className="player-ship"></div>
+            </div>
+          )}
           {paused && (
             <div
               className="crt-content"
