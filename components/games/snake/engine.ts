@@ -1,14 +1,24 @@
 // Motor puro de Snake, diseñado desde cero (sin game.js de referencia).
 
+import { FRUIT_ATLAS, FRUIT_KEYS } from "./fruit-atlas";
+
 export const COLS = 20;
 export const ROWS = 20;
 
 const HUD_MARGIN = 90;
 const INITIAL_TICK_INTERVAL = 140; // ms por paso de cuadrícula
+const MIN_TICK_INTERVAL = 60;
+const TICK_DECREASE_PER_LEVEL = 8;
+const FRUITS_PER_LEVEL = 5;
+const POINTS_PER_FRUIT = 10;
 
 export interface Segment {
   x: number;
   y: number;
+}
+
+interface Fruit extends Segment {
+  spriteKey: string;
 }
 
 interface Direction {
@@ -58,12 +68,21 @@ export class SnakeEngine {
   private state: EngineState = "playing";
   private keys: Record<string, boolean> = {};
   private justPressed: Record<string, boolean> = {};
+  private fruit: Fruit | null = null;
+  private fruitImage: HTMLImageElement | null = null;
+  private score = 0;
+  private fruitsEaten = 0;
+  private level = 1;
 
   constructor(width: number, height: number) {
     this.width = width;
     this.height = height;
     this.initGame();
     this.recalcLayout();
+  }
+
+  setFruitImage(img: HTMLImageElement): void {
+    this.fruitImage = img;
   }
 
   resize(width: number, height: number): void {
@@ -83,9 +102,9 @@ export class SnakeEngine {
 
   getSnapshot(): EngineSnapshot {
     return {
-      score: 0,
+      score: this.score,
       lives: this.state === "playing" ? 1 : 0,
-      level: 1,
+      level: this.level,
       state: this.state,
     };
   }
@@ -123,6 +142,26 @@ export class SnakeEngine {
     this.tickInterval = INITIAL_TICK_INTERVAL;
     this.tickAccum = 0;
     this.state = "playing";
+    this.score = 0;
+    this.fruitsEaten = 0;
+    this.level = 1;
+    this.fruit = null;
+    this.spawnFruit();
+  }
+
+  private spawnFruit(): void {
+    const freeCells: Segment[] = [];
+    for (let x = 0; x < COLS; x++) {
+      for (let y = 0; y < ROWS; y++) {
+        if (!this.segments.some((s) => s.x === x && s.y === y)) {
+          freeCells.push({ x, y });
+        }
+      }
+    }
+    if (freeCells.length === 0) return;
+    const cell = freeCells[Math.floor(Math.random() * freeCells.length)];
+    const spriteKey = FRUIT_KEYS[Math.floor(Math.random() * FRUIT_KEYS.length)];
+    this.fruit = { x: cell.x, y: cell.y, spriteKey };
   }
 
   private readDirectionInput(): void {
@@ -172,6 +211,22 @@ export class SnakeEngine {
     } else {
       this.segments.pop();
     }
+
+    if (
+      this.fruit &&
+      newHead.x === this.fruit.x &&
+      newHead.y === this.fruit.y
+    ) {
+      this.growPending++;
+      this.score += POINTS_PER_FRUIT * this.level;
+      this.fruitsEaten++;
+      this.level = Math.floor(this.fruitsEaten / FRUITS_PER_LEVEL) + 1;
+      this.tickInterval = Math.max(
+        MIN_TICK_INTERVAL,
+        INITIAL_TICK_INTERVAL - (this.level - 1) * TICK_DECREASE_PER_LEVEL,
+      );
+      this.spawnFruit();
+    }
   }
 
   update(dt: number): void {
@@ -215,14 +270,77 @@ export class SnakeEngine {
     });
   }
 
+  private drawFruit(ctx: CanvasRenderingContext2D): void {
+    if (!this.fruit) return;
+    const cx = this.fruit.x * this.cellSize + this.cellSize / 2;
+    const cy = this.fruit.y * this.cellSize + this.cellSize / 2;
+
+    const sprite = FRUIT_ATLAS[this.fruit.spriteKey];
+    if (this.fruitImage && sprite) {
+      const scale = Math.min(
+        (this.cellSize * 1.4) / sprite.w,
+        (this.cellSize * 1.4) / sprite.h,
+      );
+      const dw = sprite.w * scale;
+      const dh = sprite.h * scale;
+      ctx.drawImage(
+        this.fruitImage,
+        sprite.x,
+        sprite.y,
+        sprite.w,
+        sprite.h,
+        cx - dw / 2,
+        cy - dh / 2,
+        dw,
+        dh,
+      );
+    } else {
+      ctx.fillStyle = "#ff5252";
+      const r = this.cellSize * 0.4;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  private drawHUD(ctx: CanvasRenderingContext2D): void {
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 15px monospace";
+    ctx.fillText(`SCORE ${this.score.toLocaleString()}`, this.offsetX, 22);
+    ctx.fillText(`LARGO ${this.segments.length}`, this.offsetX, 42);
+    ctx.fillText(`NIVEL ${this.level}`, this.offsetX, 62);
+  }
+
+  private drawOverlay(ctx: CanvasRenderingContext2D): void {
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 46px monospace";
+    ctx.fillText("GAME OVER", this.width / 2, this.height / 2 - 18);
+    ctx.font = "18px monospace";
+    ctx.fillStyle = "rgba(255,255,255,0.65)";
+    ctx.fillText(
+      `PUNTUACIÓN: ${this.score.toLocaleString()}`,
+      this.width / 2,
+      this.height / 2 + 22,
+    );
+  }
+
   draw(ctx: CanvasRenderingContext2D): void {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, this.width, this.height);
 
+    this.drawHUD(ctx);
+
     ctx.save();
     ctx.translate(this.offsetX, this.offsetY);
     this.drawGrid(ctx);
+    this.drawFruit(ctx);
     this.drawSnake(ctx);
     ctx.restore();
+
+    if (this.state === "gameover") {
+      this.drawOverlay(ctx);
+    }
   }
 }
