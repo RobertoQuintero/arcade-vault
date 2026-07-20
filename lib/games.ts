@@ -1,3 +1,5 @@
+import { createClient } from "@/lib/supabase/client";
+
 export type GameCategory = "ARCADE" | "PUZZLE" | "SHOOTER" | "VERSUS";
 
 export interface Game {
@@ -20,17 +22,8 @@ export const CATS: ("TODOS" | GameCategory)[] = [
   "VERSUS",
 ];
 
-async function getSupabase() {
-  if (typeof window === "undefined") {
-    const { createClient } = await import("@/lib/supabase/server");
-    return createClient();
-  }
-  const { createClient } = await import("@/lib/supabase/client");
-  return createClient();
-}
-
 export async function getGames(): Promise<Game[]> {
-  const supabase = await getSupabase();
+  const supabase = createClient();
   const { data, error } = await supabase.from("games").select("*");
 
   if (error) throw error;
@@ -39,7 +32,7 @@ export async function getGames(): Promise<Game[]> {
 }
 
 export async function getGameById(id: string): Promise<Game | undefined> {
-  const supabase = await getSupabase();
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("games")
     .select("*")
