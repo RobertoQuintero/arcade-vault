@@ -1,3 +1,5 @@
+import { createClient } from "@/lib/supabase/client";
+
 export interface StoredUser {
   name: string;
 }
@@ -6,11 +8,16 @@ export interface ScoreEntry {
   game: string;
   score: number;
   name: string;
-  at: number;
+}
+
+export interface ScoreRow {
+  rank: number;
+  name: string;
+  score: number;
+  date: string; // dd/mm/yyyy, derivado de created_at
 }
 
 const USER_KEY = "av_user";
-const SCORES_KEY = "av_scores";
 
 export function getUser(): StoredUser | null {
   try {
@@ -28,12 +35,47 @@ export function setUser(user: StoredUser | null): void {
   }
 }
 
-export function saveScore(entry: Omit<ScoreEntry, "at">): void {
-  try {
-    const all: ScoreEntry[] = JSON.parse(localStorage.getItem(SCORES_KEY) || "[]");
-    all.push({ ...entry, at: Date.now() });
-    localStorage.setItem(SCORES_KEY, JSON.stringify(all));
-  } catch {
-    // localStorage unavailable — no-op, matches template behavior
-  }
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  return `${day}/${month}/${d.getFullYear()}`;
+}
+
+export async function saveScore(entry: ScoreEntry): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { error } = await supabase.from("scores").insert({
+    game: entry.game,
+    score: entry.score,
+    name: entry.name,
+    user_id: user?.id ?? null,
+  });
+
+  if (error) throw error;
+}
+
+export async function getScoresForGame(
+  gameId: string,
+  limit = 10,
+): Promise<ScoreRow[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("scores")
+    .select("name, score, created_at")
+    .eq("game", gameId)
+    .order("score", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+
+  return (data ?? []).map((row, i) => ({
+    rank: i + 1,
+    name: row.name,
+    score: row.score,
+    date: formatDate(row.created_at),
+  }));
 }
