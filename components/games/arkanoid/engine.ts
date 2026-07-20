@@ -84,11 +84,14 @@ export const BLOCK_COLOR_HEX: Record<string, string> = {
 // ── Motor del juego ──────────────────────────────────────────────────────────
 export type EngineState = "playing" | "dead" | "gameover";
 
+export type SoundEvent = "paddle-hit" | "block-break";
+
 export interface EngineSnapshot {
   score: number;
   lives: number;
   level: number;
   state: EngineState;
+  sounds: SoundEvent[];
 }
 
 interface Block {
@@ -140,6 +143,7 @@ export class ArkanoidEngine {
   private won = false;
 
   private keys: Record<string, boolean> = {};
+  private soundEvents: SoundEvent[] = [];
 
   constructor(width: number, height: number) {
     this.width = width;
@@ -188,11 +192,14 @@ export class ArkanoidEngine {
   }
 
   getSnapshot(): EngineSnapshot {
+    const sounds = this.soundEvents;
+    this.soundEvents = [];
     return {
       score: this.score,
       lives: this.lives,
       level: this.level,
       state: this.state,
+      sounds,
     };
   }
 
@@ -281,6 +288,7 @@ export class ArkanoidEngine {
     ) {
       ball.y = paddle.y - ball.h;
       ball.vy = -Math.abs(ball.vy);
+      this.soundEvents.push("paddle-hit");
     }
 
     for (const block of this.blocks) {
@@ -289,6 +297,7 @@ export class ArkanoidEngine {
         block.alive = false;
         this.score += 10;
         ball.vy = -ball.vy;
+        this.soundEvents.push("block-break");
         if (this.blocks.every((b) => !b.alive)) {
           if (this.level < 5) {
             this.loadLevel(this.level + 1);
