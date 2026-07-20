@@ -1,6 +1,6 @@
 # 06 — Catálogo de juegos real con Supabase
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Dependencias:** SPEC 01 (MVP visual — define `Game`, `GAMES`, `CATS`), SPEC 04 (Asteroids real — único juego jugable hoy), SPEC 05 (Leaderboard Supabase — cliente Supabase en `lib/supabase/`, tabla `scores`, patrón Server Component + client hijo en `app/games/[id]/page.tsx`)
 - **Fecha:** 2026-07-19
 
