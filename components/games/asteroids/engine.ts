@@ -158,6 +158,58 @@ export class Particle {
   }
 }
 
+// ── PowerUp ───────────────────────────────────────────────────────────────────
+export const POWERUP_DROP_CHANCE = 0.15;
+export const POWERUP_DURATION = 5;
+export const POWERUP_TTL = 12;
+
+export class PowerUp {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius: number;
+  ttl: number;
+  dead: boolean;
+
+  constructor(x: number, y: number) {
+    this.x = x;
+    this.y = y;
+    const angle = rand(0, Math.PI * 2);
+    const speed = rand(20, 40);
+    this.vx = Math.cos(angle) * speed;
+    this.vy = Math.sin(angle) * speed;
+    this.radius = 12;
+    this.ttl = POWERUP_TTL;
+    this.dead = false;
+  }
+
+  update(dt: number, width: number, height: number): void {
+    this.x = wrap(this.x + this.vx * dt, width);
+    this.y = wrap(this.y + this.vy * dt, height);
+    this.ttl -= dt;
+    if (this.ttl <= 0) this.dead = true;
+  }
+
+  draw(ctx: CanvasRenderingContext2D): void {
+    if (this.ttl < 2 && Math.floor(this.ttl * 8) % 2 === 0) return;
+    const pulse = 0.85 + Math.sin(performance.now() / 150) * 0.15;
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(Math.PI / 4);
+    ctx.strokeStyle = "#0ff";
+    ctx.lineWidth = 2;
+    const r = this.radius * pulse;
+    ctx.strokeRect(-r, -r, r * 2, r * 2);
+    ctx.restore();
+    ctx.fillStyle = "#0ff";
+    ctx.font = "bold 12px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("3x", this.x, this.y);
+  }
+}
+
 // ── Ship ──────────────────────────────────────────────────────────────────────
 const TRIPLE_SPREAD = 0.18;
 
@@ -291,6 +343,9 @@ export class AsteroidsEngine {
   private bullets: Bullet[] = [];
   private asteroids: Asteroid[] = [];
   private particles: Particle[] = [];
+  private powerUps: PowerUp[] = [];
+  private powerUpSpawned = false;
+  private killsSinceSpawn = 0;
   private score = 0;
   private lives = 3;
   private level = 1;
@@ -353,6 +408,9 @@ export class AsteroidsEngine {
     this.bullets = [];
     this.asteroids = [];
     this.particles = [];
+    this.powerUps = [];
+    this.powerUpSpawned = false;
+    this.killsSinceSpawn = 0;
     this.score = 0;
     this.lives = 3;
     this.level = 1;
@@ -364,6 +422,9 @@ export class AsteroidsEngine {
     this.level++;
     this.bullets = [];
     this.particles = [];
+    this.powerUps = [];
+    this.powerUpSpawned = false;
+    this.killsSinceSpawn = 0;
     this.ship.reset(this.width, this.height);
     this.spawnAsteroids(3 + this.level);
   }
@@ -411,9 +472,18 @@ export class AsteroidsEngine {
     this.bullets.forEach((b) => b.update(dt, this.width, this.height));
     this.asteroids.forEach((a) => a.update(dt, this.width, this.height));
     this.particles.forEach((p) => p.update(dt));
+    this.powerUps.forEach((p) => p.update(dt, this.width, this.height));
 
     this.bullets = this.bullets.filter((b) => !b.dead);
     this.particles = this.particles.filter((p) => !p.dead);
+    this.powerUps = this.powerUps.filter((p) => !p.dead);
+
+    for (const p of this.powerUps) {
+      if (!p.dead && dist(this.ship, p) < this.ship.radius + p.radius) {
+        p.dead = true;
+        this.ship.tripleShot = POWERUP_DURATION;
+      }
+    }
 
     // Bala vs asteroide
     const newAsteroids: Asteroid[] = [];
@@ -425,6 +495,14 @@ export class AsteroidsEngine {
           this.score += POINTS[a.size];
           this.explode(a.x, a.y, a.size * 5);
           newAsteroids.push(...a.split());
+          if (!this.powerUpSpawned) {
+            this.killsSinceSpawn++;
+            const guaranteed = this.killsSinceSpawn >= 5;
+            if (guaranteed || Math.random() < POWERUP_DROP_CHANCE) {
+              this.powerUps.push(new PowerUp(a.x, a.y));
+              this.powerUpSpawned = true;
+            }
+          }
         }
       }
     }
@@ -506,6 +584,7 @@ export class AsteroidsEngine {
 
     this.particles.forEach((p) => p.draw(ctx));
     this.asteroids.forEach((a) => a.draw(ctx));
+    this.powerUps.forEach((p) => p.draw(ctx));
     this.bullets.forEach((b) => b.draw(ctx));
     this.ship.draw(ctx);
 
