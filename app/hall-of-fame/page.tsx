@@ -2,16 +2,32 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { GAMES } from "@/lib/games";
+import { getGames, type Game } from "@/lib/games";
 import { getScoresForGame, type ScoreRow } from "@/lib/storage";
 import { useSessionUser } from "@/lib/session-user";
 
 export default function HallOfFamePage() {
-  const [tab, setTab] = useState(GAMES[0].id);
+  const [games, setGames] = useState<Game[]>([]);
+  const [loadingGames, setLoadingGames] = useState(true);
+  const [tab, setTab] = useState<string | null>(null);
   const [rows, setRows] = useState<ScoreRow[]>([]);
   const user = useSessionUser();
 
   useEffect(() => {
+    let cancelled = false;
+    getGames().then((result) => {
+      if (cancelled) return;
+      setGames(result);
+      setTab((current) => current ?? result[0]?.id ?? null);
+      setLoadingGames(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!tab) return;
     let cancelled = false;
     getScoresForGame(tab, 12).then((result) => {
       if (!cancelled) setRows(result);
@@ -21,7 +37,20 @@ export default function HallOfFamePage() {
     };
   }, [tab]);
 
-  const game = GAMES.find((g) => g.id === tab)!;
+  if (loadingGames || !tab) {
+    return (
+      <div className="av-hall fade-in">
+        <div className="hall-head">
+          <h1>SALÓN DE LA FAMA</h1>
+          <p className="pixel" style={{ fontSize: 10 }}>
+            CARGANDO…
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const game = games.find((g) => g.id === tab)!;
   const you = user
     ? rows.find((r) => r.name.toLowerCase() === user.name.toLowerCase())
     : undefined;
@@ -36,7 +65,7 @@ export default function HallOfFamePage() {
       </div>
 
       <div className="hall-tabs">
-        {GAMES.map((g) => (
+        {games.map((g) => (
           <button
             key={g.id}
             className={"chip" + (tab === g.id ? " active" : "")}
