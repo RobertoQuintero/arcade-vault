@@ -171,8 +171,8 @@ export function GamePlayer({ game }: { game: Game }) {
                 />
                 <button
                   className="btn yellow"
-                  onClick={() => {
-                    saveScore({ game: game.id, score, name });
+                  onClick={async () => {
+                    await saveScore({ game: game.id, score, name });
                     setSaved(true);
                   }}
                 >
