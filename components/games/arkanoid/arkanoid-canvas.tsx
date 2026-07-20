@@ -1,9 +1,14 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { ArkanoidEngine, type EngineSnapshot } from "./engine";
+import { ArkanoidEngine, type EngineSnapshot, type SoundEvent } from "./engine";
 
 const CAPTURED_KEYS = new Set(["ArrowLeft", "ArrowRight"]);
+
+const SOUND_URLS: Record<SoundEvent, string> = {
+  "paddle-hit": "/sounds/arkanoid/ball-bounce.mp3",
+  "block-break": "/sounds/arkanoid/break-sound.mp3",
+};
 
 export interface ArkanoidCanvasProps {
   paused: boolean;
@@ -39,6 +44,43 @@ export function ArkanoidCanvas({
     canvas.width = width;
     canvas.height = height;
     const engine = new ArkanoidEngine(width, height);
+
+    const AudioContextCtor =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext?: typeof AudioContext })
+        .webkitAudioContext;
+    const audioCtx = AudioContextCtor ? new AudioContextCtor() : null;
+    const buffers: Partial<Record<SoundEvent, AudioBuffer>> = {};
+
+    if (audioCtx) {
+      for (const [event, url] of Object.entries(SOUND_URLS) as [
+        SoundEvent,
+        string,
+      ][]) {
+        fetch(url)
+          .then((res) => res.arrayBuffer())
+          .then((data) => audioCtx.decodeAudioData(data))
+          .then((buffer) => {
+            buffers[event] = buffer;
+          })
+          .catch(() => {
+            // sonido no disponible: el juego sigue funcionando sin ese efecto
+          });
+      }
+    }
+
+    const playSound = (event: SoundEvent) => {
+      const buffer = buffers[event];
+      if (!audioCtx || !buffer) return;
+      try {
+        const source = audioCtx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(audioCtx.destination);
+        source.start();
+      } catch {
+        // reproducción fallida: el juego continúa sin ese efecto
+      }
+    };
 
     const resizeObserver = new ResizeObserver((entries) => {
       const entry = entries[0];
@@ -78,7 +120,9 @@ export function ArkanoidCanvas({
       lastTime = ts;
       if (!pausedRef.current) engine.update(dt);
       engine.draw(ctx);
-      onSnapshotRef.current(engine.getSnapshot());
+      const snapshot = engine.getSnapshot();
+      for (const event of snapshot.sounds) playSound(event);
+      onSnapshotRef.current(snapshot);
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
@@ -90,6 +134,7 @@ export function ArkanoidCanvas({
       window.removeEventListener("keyup", handleKeyUp);
       canvas.removeEventListener("mousemove", handleMouseMove);
       if (forceEndRef) forceEndRef.current = null;
+      if (audioCtx) audioCtx.close().catch(() => {});
     };
   }, [forceEndRef]);
 
