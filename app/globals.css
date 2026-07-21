@@ -1056,6 +1056,7 @@ a {
   background: #000;
   border-radius: 12px / 28px;
   overflow: hidden;
+  touch-action: none;
   box-shadow:
     inset 0 0 60px rgba(0, 0, 0, 0.9),
     inset 0 0 20px rgba(0, 245, 255, 0.15);
@@ -1117,6 +1118,62 @@ a {
   border-radius: 50%;
   background: var(--green);
   box-shadow: 0 0 6px var(--green);
+}
+
+/* touch controls overlay */
+.touch-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 14px;
+  padding: 0 4px;
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.touch-controls-dpad {
+  display: grid;
+  grid-template-areas:
+    ".    up    ."
+    "left .     right"
+    ".    down  .";
+  grid-template-columns: 44px 44px 44px;
+  grid-template-rows: 44px 44px 44px;
+  gap: 4px;
+}
+.touch-controls-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.touch-controls-button {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  color: var(--cyan);
+  font-family: var(--pixel);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.touch-controls-button:active {
+  background: var(--cyan);
+  color: #000;
+}
+.touch-controls-button--action {
+  min-width: 56px;
+  min-height: 56px;
+  border-radius: 50%;
+  font-size: 9px;
+  text-align: center;
+  padding: 4px;
 }
 
 /* fake in-screen game */
@@ -1738,6 +1795,37 @@ a {
   }
   .av-player {
     padding: 0 16px 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .player-hud {
+    padding: 10px 12px;
+    gap: 12px;
+  }
+  .hud-actions {
+    gap: 8px;
+  }
+  .hud-actions .btn {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+  .crt {
+    padding: 14px;
+    border-radius: 18px;
+  }
+  .touch-controls-dpad {
+    grid-template-columns: 40px 40px 40px;
+    grid-template-rows: 40px 40px 40px;
+  }
+  .touch-controls-button {
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 12px;
+  }
+  .touch-controls-button--action {
+    min-width: 48px;
+    min-height: 48px;
   }
 }
 
