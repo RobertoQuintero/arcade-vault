@@ -11,6 +11,7 @@ export interface GameCanvasProps {
   onSnapshot: (snapshot: EngineSnapshot) => void;
   forceEndRef?: RefObject<(() => void) | null>;
   skin?: SkinName;
+  touchInputRef?: RefObject<((code: string, down: boolean) => void) | null>;
 }
 
 export const GAME_CANVASES: Record<string, ComponentType<GameCanvasProps>> = {
