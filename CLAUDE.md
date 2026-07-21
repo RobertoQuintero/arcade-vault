@@ -20,6 +20,7 @@ No test runner is configured. Verify changes with `npx tsc --noEmit` and by runn
 ## Agents
 
 - **`game-planner`** (`.claude/agents/game-planner.md`) — recommendation-only subagent that decides which classic arcade game to add next. Reasons about category balance, fit with the engine contract, and estimated effort; keeps a persistent memory of past suggestions in `references/game-planner-memory.md` so it doesn't repeat proposed/discarded games across sessions. It never implements — its output feeds into `/game-impl`.
+- **`game-jam`** (`.claude/agents/game-jam.md`) — given a theme, invents 2-3 arcade games that fit it and writes, per game, `specs/game-jam/<game_id>/` with at least 2 full specs (variants of the same game, same `games` row, diverging mechanics) in the format of specs 07/08/10. Only writes under `specs/game-jam/`. It never implements — pick a variant and feed it to `/game-impl`.
 
 ## Stack
 
