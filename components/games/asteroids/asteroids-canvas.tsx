@@ -10,6 +10,9 @@ export interface AsteroidsCanvasProps {
   onSnapshot: (snapshot: EngineSnapshot) => void;
   forceEndRef?: React.RefObject<(() => void) | null>;
   skin?: SkinName;
+  touchInputRef?: React.RefObject<
+    ((code: string, down: boolean) => void) | null
+  >;
 }
 
 export function AsteroidsCanvas({
@@ -17,6 +20,7 @@ export function AsteroidsCanvas({
   onSnapshot,
   forceEndRef,
   skin = "clasico",
+  touchInputRef,
 }: AsteroidsCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pausedRef = useRef(paused);
@@ -73,6 +77,8 @@ export function AsteroidsCanvas({
     window.addEventListener("keyup", handleKeyUp);
 
     if (forceEndRef) forceEndRef.current = () => engine.forceGameOver();
+    if (touchInputRef)
+      touchInputRef.current = (code, down) => engine.setKey(code, down);
 
     let lastTime: number | null = null;
     let raf = 0;
@@ -93,9 +99,10 @@ export function AsteroidsCanvas({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
       if (forceEndRef) forceEndRef.current = null;
+      if (touchInputRef) touchInputRef.current = null;
       engineRef.current = null;
     };
-  }, [forceEndRef]);
+  }, [forceEndRef, touchInputRef]);
 
   return (
     <canvas
