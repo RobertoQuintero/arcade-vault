@@ -13,6 +13,7 @@ import {
   SKIN_OPTIONS,
   type SkinName,
 } from "@/components/games/skins";
+import { TouchControls } from "@/components/games/touch-controls";
 
 export function GamePlayer({ game }: { game: Game }) {
   const router = useRouter();
@@ -30,12 +31,25 @@ export function GamePlayer({ game }: { game: Game }) {
   >("idle");
   const [restartKey, setRestartKey] = useState(0);
   const [skin, setSkin] = useState<SkinName>("clasico");
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
   const forceEndRef = useRef<(() => void) | null>(null);
+  const touchInputRef = useRef<((code: string, down: boolean) => void) | null>(
+    null,
+  );
   const hasSkins = GAMES_WITH_SKINS.has(game.id);
 
   useEffect(() => {
     if (sessionUser) setName(sessionUser.name);
   }, [sessionUser]);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(pointer: coarse)");
+    setIsTouchDevice(mql.matches);
+    const handleChange = (e: MediaQueryListEvent) =>
+      setIsTouchDevice(e.matches);
+    mql.addEventListener("change", handleChange);
+    return () => mql.removeEventListener("change", handleChange);
+  }, []);
 
   useEffect(() => {
     if (isReal) return;
@@ -148,6 +162,7 @@ export function GamePlayer({ game }: { game: Game }) {
               onSnapshot={handleSnapshot}
               forceEndRef={forceEndRef}
               skin={skin}
+              touchInputRef={touchInputRef}
             />
           ) : (
             <div className="game-arena">
@@ -182,6 +197,9 @@ export function GamePlayer({ game }: { game: Game }) {
             </div>
           )}
         </div>
+        {isReal && isTouchDevice && game.id !== "arkanoid" && (
+          <TouchControls gameId={game.id} touchInputRef={touchInputRef} />
+        )}
         <div className="crt-bottom">
           <span className="led">SEÑAL OK</span>
           <span>{game.title} · CRT-83 · 60 HZ</span>
