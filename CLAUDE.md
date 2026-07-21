@@ -17,6 +17,10 @@ No test runner is configured. Verify changes with `npx tsc --noEmit` and by runn
 - **Usa siempre `/frontend-design` para diseñar la interfaz de usuario** o arte de covers.
 - **`/game-impl`** (`.claude/skills/game-impl/`) — the project's own spec-first workflow to add a real game end-to-end: writes the spec, ports/creates the engine, canvas component, registry entry, cover, and the Supabase `games` row. Read its `SKILL.md` and `game-integration.md` (the engine/canvas/registry/migration templates) before adding any game. It codifies the pattern established by Asteroids and specs 04–06.
 
+## Agents
+
+- **`game-planner`** (`.claude/agents/game-planner.md`) — recommendation-only subagent that decides which classic arcade game to add next. Reasons about category balance, fit with the engine contract, and estimated effort; keeps a persistent memory of past suggestions in `references/game-planner-memory.md` so it doesn't repeat proposed/discarded games across sessions. It never implements — its output feeds into `/game-impl`.
+
 ## Stack
 
 - Next.js 16.2 (App Router), React 19, TypeScript (strict), Tailwind CSS v4 (via `@tailwindcss/postcss`, no `tailwind.config` — v4 is CSS-first, see `app/globals.css`)
