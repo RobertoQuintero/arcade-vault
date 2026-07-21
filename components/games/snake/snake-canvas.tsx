@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { SnakeEngine, type EngineSnapshot } from "./engine";
+import { SnakeEngine, type EngineSnapshot, type SkinName } from "./engine";
 
 const CAPTURED_KEYS = new Set([
   "ArrowLeft",
@@ -18,16 +18,20 @@ export interface SnakeCanvasProps {
   paused: boolean;
   onSnapshot: (snapshot: EngineSnapshot) => void;
   forceEndRef?: React.RefObject<(() => void) | null>;
+  skin?: SkinName;
 }
 
 export function SnakeCanvas({
   paused,
   onSnapshot,
   forceEndRef,
+  skin = "clasico",
 }: SnakeCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pausedRef = useRef(paused);
   const onSnapshotRef = useRef(onSnapshot);
+  const skinRef = useRef(skin);
+  const engineRef = useRef<SnakeEngine | null>(null);
 
   useEffect(() => {
     pausedRef.current = paused;
@@ -36,6 +40,11 @@ export function SnakeCanvas({
   useEffect(() => {
     onSnapshotRef.current = onSnapshot;
   }, [onSnapshot]);
+
+  useEffect(() => {
+    skinRef.current = skin;
+    engineRef.current?.setSkin(skin);
+  }, [skin]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -48,6 +57,8 @@ export function SnakeCanvas({
     canvas.width = width;
     canvas.height = height;
     const engine = new SnakeEngine(width, height);
+    engine.setSkin(skinRef.current);
+    engineRef.current = engine;
 
     const fruitImage = new Image();
     fruitImage.src = "/games/snake/fruits.png";
@@ -95,6 +106,7 @@ export function SnakeCanvas({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
       if (forceEndRef) forceEndRef.current = null;
+      engineRef.current = null;
     };
   }, [forceEndRef]);
 

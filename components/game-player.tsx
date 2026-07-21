@@ -8,6 +8,11 @@ import { saveScore } from "@/lib/storage";
 import { useSessionUser } from "@/lib/session-user";
 import { GAME_CANVASES } from "@/components/games/registry";
 import type { EngineSnapshot } from "@/components/games/registry";
+import {
+  GAMES_WITH_SKINS,
+  SKIN_OPTIONS,
+  type SkinName,
+} from "@/components/games/skins";
 
 export function GamePlayer({ game }: { game: Game }) {
   const router = useRouter();
@@ -24,7 +29,9 @@ export function GamePlayer({ game }: { game: Game }) {
     "idle" | "pending" | "saved" | "error"
   >("idle");
   const [restartKey, setRestartKey] = useState(0);
+  const [skin, setSkin] = useState<SkinName>("clasico");
   const forceEndRef = useRef<(() => void) | null>(null);
+  const hasSkins = GAMES_WITH_SKINS.has(game.id);
 
   useEffect(() => {
     if (sessionUser) setName(sessionUser.name);
@@ -91,6 +98,30 @@ export function GamePlayer({ game }: { game: Game }) {
             <div className="l">Nivel</div>
             <div className="v">{String(level).padStart(2, "0")}</div>
           </div>
+          {hasSkins && (
+            <div className="hud-stat">
+              <div className="l">Skin</div>
+              <select
+                className="mono"
+                value={skin}
+                onChange={(e) => setSkin(e.target.value as SkinName)}
+                style={{
+                  background: "transparent",
+                  color: "var(--ink)",
+                  border: "1px solid var(--ink-dim)",
+                  borderRadius: 4,
+                  padding: "2px 6px",
+                  fontSize: 12,
+                }}
+              >
+                {SKIN_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
         <div className="hud-actions">
           <button className="btn yellow" onClick={() => setPaused((p) => !p)}>
@@ -116,6 +147,7 @@ export function GamePlayer({ game }: { game: Game }) {
               paused={paused}
               onSnapshot={handleSnapshot}
               forceEndRef={forceEndRef}
+              skin={skin}
             />
           ) : (
             <div className="game-arena">

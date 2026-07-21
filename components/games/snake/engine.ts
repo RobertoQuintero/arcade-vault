@@ -1,6 +1,9 @@
 // Motor puro de Snake, diseñado desde cero (sin game.js de referencia).
 
 import { FRUIT_ATLAS, FRUIT_KEYS } from "./fruit-atlas";
+import type { SkinName } from "@/components/games/skins";
+
+export type { SkinName };
 
 export const COLS = 20;
 export const ROWS = 20;
@@ -40,6 +43,59 @@ const DIRECTIONS: Record<string, Direction> = {
 const isOpposite = (a: Direction, b: Direction): boolean =>
   a.x === -b.x && a.y === -b.y;
 
+// ── Skins ────────────────────────────────────────────────────────────────────
+interface Skin {
+  background: string;
+  grid: string;
+  snake: string;
+  fruitFallback: string;
+  hudText: string;
+  hudTextDim: string;
+  overlayTitle: string;
+  overlaySubtitle: string;
+  glow: boolean;
+  glowBlur: number;
+}
+
+const SKINS: Record<SkinName, Skin> = {
+  clasico: {
+    background: "#000000",
+    grid: "rgba(255,255,255,0.08)",
+    snake: "#7ee787",
+    fruitFallback: "#ff5252",
+    hudText: "#ffffff",
+    hudTextDim: "rgba(255,255,255,0.65)",
+    overlayTitle: "#ffffff",
+    overlaySubtitle: "rgba(255,255,255,0.65)",
+    glow: false,
+    glowBlur: 0,
+  },
+  neon: {
+    background: "#05050a",
+    grid: "rgba(0, 245, 255, 0.06)",
+    snake: "#00ff88",
+    fruitFallback: "#ff006e",
+    hudText: "#00f5ff",
+    hudTextDim: "rgba(0, 245, 255, 0.6)",
+    overlayTitle: "#ff006e",
+    overlaySubtitle: "#00f5ff",
+    glow: true,
+    glowBlur: 12,
+  },
+  retro: {
+    background: "#0b0f0a",
+    grid: "rgba(51, 255, 51, 0.12)",
+    snake: "#33ff33",
+    fruitFallback: "#ffb000",
+    hudText: "#33ff33",
+    hudTextDim: "rgba(51, 255, 51, 0.7)",
+    overlayTitle: "#33ff33",
+    overlaySubtitle: "rgba(51, 255, 51, 0.75)",
+    glow: false,
+    glowBlur: 0,
+  },
+};
+
 // ── Motor del juego ──────────────────────────────────────────────────────────
 export type EngineState = "playing" | "dead" | "gameover";
 
@@ -73,6 +129,7 @@ export class SnakeEngine {
   private score = 0;
   private fruitsEaten = 0;
   private level = 1;
+  private skin: Skin = SKINS.clasico;
 
   constructor(width: number, height: number) {
     this.width = width;
@@ -83,6 +140,10 @@ export class SnakeEngine {
 
   setFruitImage(img: HTMLImageElement): void {
     this.fruitImage = img;
+  }
+
+  setSkin(name: SkinName): void {
+    this.skin = SKINS[name];
   }
 
   resize(width: number, height: number): void {
@@ -242,7 +303,7 @@ export class SnakeEngine {
   }
 
   private drawGrid(ctx: CanvasRenderingContext2D): void {
-    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    ctx.strokeStyle = this.skin.grid;
     ctx.lineWidth = 0.5;
     for (let c = 1; c < COLS; c++) {
       ctx.beginPath();
@@ -259,7 +320,11 @@ export class SnakeEngine {
   }
 
   private drawSnake(ctx: CanvasRenderingContext2D): void {
-    ctx.fillStyle = "#7ee787";
+    ctx.fillStyle = this.skin.snake;
+    if (this.skin.glow) {
+      ctx.shadowBlur = this.skin.glowBlur;
+      ctx.shadowColor = this.skin.snake;
+    }
     this.segments.forEach((s) => {
       ctx.fillRect(
         s.x * this.cellSize + 1,
@@ -268,6 +333,7 @@ export class SnakeEngine {
         this.cellSize - 2,
       );
     });
+    ctx.shadowBlur = 0;
   }
 
   private drawFruit(ctx: CanvasRenderingContext2D): void {
@@ -295,17 +361,22 @@ export class SnakeEngine {
         dh,
       );
     } else {
-      ctx.fillStyle = "#ff5252";
+      ctx.fillStyle = this.skin.fruitFallback;
+      if (this.skin.glow) {
+        ctx.shadowBlur = this.skin.glowBlur;
+        ctx.shadowColor = this.skin.fruitFallback;
+      }
       const r = this.cellSize * 0.4;
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.fill();
+      ctx.shadowBlur = 0;
     }
   }
 
   private drawHUD(ctx: CanvasRenderingContext2D): void {
     ctx.textAlign = "left";
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = this.skin.hudText;
     ctx.font = "bold 15px monospace";
     ctx.fillText(`SCORE ${this.score.toLocaleString()}`, this.offsetX, 22);
     ctx.fillText(`LARGO ${this.segments.length}`, this.offsetX, 42);
@@ -314,11 +385,11 @@ export class SnakeEngine {
 
   private drawOverlay(ctx: CanvasRenderingContext2D): void {
     ctx.textAlign = "center";
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = this.skin.overlayTitle;
     ctx.font = "bold 46px monospace";
     ctx.fillText("GAME OVER", this.width / 2, this.height / 2 - 18);
     ctx.font = "18px monospace";
-    ctx.fillStyle = "rgba(255,255,255,0.65)";
+    ctx.fillStyle = this.skin.overlaySubtitle;
     ctx.fillText(
       `PUNTUACIÓN: ${this.score.toLocaleString()}`,
       this.width / 2,
@@ -327,7 +398,7 @@ export class SnakeEngine {
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = this.skin.background;
     ctx.fillRect(0, 0, this.width, this.height);
 
     this.drawHUD(ctx);
