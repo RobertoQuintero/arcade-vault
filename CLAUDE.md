@@ -20,6 +20,7 @@ No test runner is configured. Verify changes with `npx tsc --noEmit` and by runn
 ## Agents
 
 - **`game-planner`** (`.claude/agents/game-planner.md`) — recommendation-only subagent that decides which classic arcade game to add next. Reasons about category balance, fit with the engine contract, and estimated effort; keeps a persistent memory of past suggestions in `references/game-planner-memory.md` so it doesn't repeat proposed/discarded games across sessions. It never implements — its output feeds into `/game-impl`.
+- **`skin-designer`** (`.claude/agents/skin-designer.md`) — read-only auditor that checks a game (or all of them) has at least 3 visual skins — `neon`, `retro`, `clasico` (default) — per the `SKINS` map + `setSkin` convention in the engine. Reports a verdict per game and designs the palettes for any missing skins. It never implements — its report feeds into implementation work.
 - **`game-jam`** (`.claude/agents/game-jam.md`) — given a theme, invents 2-3 arcade games that fit it and writes, per game, `specs/game-jam/<game_id>/` with at least 2 full specs (variants of the same game, same `games` row, diverging mechanics) in the format of specs 07/08/10. Only writes under `specs/game-jam/`. It never implements — pick a variant and feed it to `/game-impl`.
 
 ## Stack
