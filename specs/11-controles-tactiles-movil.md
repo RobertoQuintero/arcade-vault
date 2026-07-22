@@ -1,6 +1,6 @@
 # 11 — Controles táctiles para móvil
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Dependencias:** SPEC 04 (Asteroids real — contrato de motor `setKey`/`EngineSnapshot`), SPEC 07 (Tetris real), SPEC 08 (Arkanoid real — control por mouse a portar a touch), SPEC 10 (Snake real); además el sistema de skins (`components/games/skins.ts`, sin spec numerado) que ya extiende `GameCanvasProps`
 - **Fecha:** 2026-07-21
 
