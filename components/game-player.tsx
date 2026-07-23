@@ -112,7 +112,7 @@ export function GamePlayer({ game }: { game: Game }) {
             <div className="l">Nivel</div>
             <div className="v">{String(level).padStart(2, "0")}</div>
           </div>
-          {hasSkins && (
+          {hasSkins && !isTouchDevice && (
             <div className="hud-stat">
               <div className="l">Skin</div>
               <select
@@ -138,9 +138,11 @@ export function GamePlayer({ game }: { game: Game }) {
           )}
         </div>
         <div className="hud-actions">
-          <button className="btn yellow" onClick={() => setPaused((p) => !p)}>
-            {paused ? "REANUDAR" : "PAUSA"}
-          </button>
+          {!isTouchDevice && (
+            <button className="btn yellow" onClick={() => setPaused((p) => !p)}>
+              {paused ? "REANUDAR" : "PAUSA"}
+            </button>
+          )}
           <button className="btn magenta" onClick={endGame}>
             FIN
           </button>
