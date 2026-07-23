@@ -2013,6 +2013,10 @@ a {
     padding: 14px;
     border-radius: 18px;
   }
+  .touch-controls-panel {
+    padding: 12px 14px 10px;
+    border-radius: 16px;
+  }
   .touch-controls-dpad {
     grid-template-columns: 40px 40px 40px;
     grid-template-rows: 40px 40px 40px;
@@ -2026,11 +2030,20 @@ a {
     min-width: 48px;
     min-height: 48px;
   }
+  .touch-dpad-hub-gem {
+    width: 10px;
+    height: 10px;
+  }
   .touch-bottom-bar {
     gap: 8px;
   }
-  .touch-bottom-bar .btn.yellow {
-    padding: 8px 10px;
+  .touch-pause-circle {
+    width: 48px;
+    height: 48px;
+    font-size: 16px;
+  }
+  .touch-skin-select {
+    padding: 4px 6px;
     font-size: 11px;
   }
 }
