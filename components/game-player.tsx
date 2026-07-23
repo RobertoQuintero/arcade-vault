@@ -202,6 +202,34 @@ export function GamePlayer({ game }: { game: Game }) {
         {isReal && isTouchDevice && game.id !== "arkanoid" && (
           <TouchControls gameId={game.id} touchInputRef={touchInputRef} />
         )}
+        {isReal && isTouchDevice && (
+          <div className="touch-bottom-bar">
+            <button className="btn yellow" onClick={() => setPaused((p) => !p)}>
+              {paused ? "REANUDAR" : "PAUSA"}
+            </button>
+            {hasSkins && (
+              <select
+                className="mono"
+                value={skin}
+                onChange={(e) => setSkin(e.target.value as SkinName)}
+                style={{
+                  background: "transparent",
+                  color: "var(--ink)",
+                  border: "1px solid var(--ink-dim)",
+                  borderRadius: 4,
+                  padding: "2px 6px",
+                  fontSize: 12,
+                }}
+              >
+                {SKIN_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+        )}
         <div className="crt-bottom">
           <span className="led">SEÑAL OK</span>
           <span>{game.title} · CRT-83 · 60 HZ</span>
