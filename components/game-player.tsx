@@ -204,8 +204,12 @@ export function GamePlayer({ game }: { game: Game }) {
         )}
         {isReal && isTouchDevice && (
           <div className="touch-bottom-bar">
-            <button className="btn yellow" onClick={() => setPaused((p) => !p)}>
-              {paused ? "REANUDAR" : "PAUSA"}
+            <button
+              className="touch-pause-circle"
+              aria-label={paused ? "Reanudar" : "Pausa"}
+              onClick={() => setPaused((p) => !p)}
+            >
+              {paused ? "▶" : "⏸"}
             </button>
             {hasSkins && (
               <select
