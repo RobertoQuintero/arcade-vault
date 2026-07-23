@@ -230,11 +230,13 @@ export function GamePlayer({ game }: { game: Game }) {
             )}
           </div>
         )}
-        <div className="crt-bottom">
-          <span className="led">SEÑAL OK</span>
-          <span>{game.title} · CRT-83 · 60 HZ</span>
-          <span>CARGA · 1MB</span>
-        </div>
+        {!isTouchDevice && (
+          <div className="crt-bottom">
+            <span className="led">SEÑAL OK</span>
+            <span>{game.title} · CRT-83 · 60 HZ</span>
+            <span>CARGA · 1MB</span>
+          </div>
+        )}
       </div>
 
       {over && (
