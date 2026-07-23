@@ -204,22 +204,18 @@ export function GamePlayer({ game }: { game: Game }) {
         )}
         {isReal && isTouchDevice && (
           <div className="touch-bottom-bar">
-            <button className="btn yellow" onClick={() => setPaused((p) => !p)}>
-              {paused ? "REANUDAR" : "PAUSA"}
+            <button
+              className="touch-pause-circle"
+              aria-label={paused ? "Reanudar" : "Pausa"}
+              onClick={() => setPaused((p) => !p)}
+            >
+              {paused ? "▶" : "⏸"}
             </button>
             {hasSkins && (
               <select
-                className="mono"
+                className="touch-skin-select mono"
                 value={skin}
                 onChange={(e) => setSkin(e.target.value as SkinName)}
-                style={{
-                  background: "transparent",
-                  color: "var(--ink)",
-                  border: "1px solid var(--ink-dim)",
-                  borderRadius: 4,
-                  padding: "2px 6px",
-                  fontSize: 12,
-                }}
               >
                 {SKIN_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>

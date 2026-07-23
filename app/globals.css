@@ -1121,22 +1121,58 @@ a {
 }
 
 /* touch controls overlay */
+.touch-controls-panel {
+  position: relative;
+  margin-top: 14px;
+  padding: 16px 18px 14px;
+  background: linear-gradient(180deg, #1c1c28 0%, #0c0c14 100%);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  box-shadow:
+    0 30px 80px -30px rgba(0, 245, 255, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.02),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.6);
+}
+.touch-controls-panel::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(0, 245, 255, 0.14);
+  border-radius: 18px;
+  pointer-events: none;
+}
+.touch-controls-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.03) 1px,
+    transparent 1px
+  );
+  background-size: 8px 8px;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.6;
+}
 .touch-controls {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-top: 14px;
   padding: 0 4px;
   touch-action: none;
   user-select: none;
   -webkit-touch-callout: none;
 }
 .touch-controls-dpad {
+  position: relative;
   display: grid;
   grid-template-areas:
     ".    up    ."
-    "left .     right"
+    "left hub   right"
     ".    down  .";
   grid-template-columns: 44px 44px 44px;
   grid-template-rows: 44px 44px 44px;
@@ -1163,17 +1199,118 @@ a {
   user-select: none;
   -webkit-touch-callout: none;
 }
-.touch-controls-button:active {
+.touch-controls-button--dpad {
+  background: linear-gradient(180deg, #1a1a25, #0a0a12);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  color: var(--ink-dim);
+  box-shadow:
+    0 4px 0 #050507,
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.6);
+  transition:
+    transform 80ms,
+    box-shadow 140ms,
+    color 140ms,
+    border-color 140ms,
+    background 140ms;
+}
+.touch-dpad-arrow {
+  width: 22px;
+  height: 22px;
+  transition: filter 140ms;
+}
+.touch-controls-button--dpad[data-pressed] {
+  transform: translateY(3px);
+  color: var(--cyan);
+  background: linear-gradient(180deg, #08161e, #030a0e);
+  border-color: var(--cyan);
+  box-shadow:
+    0 1px 0 #050507,
+    inset 0 0 16px rgba(0, 245, 255, 0.45),
+    0 0 16px rgba(0, 245, 255, 0.5);
+}
+.touch-controls-button--dpad[data-pressed] .touch-dpad-arrow {
+  filter: drop-shadow(0 0 6px var(--cyan)) drop-shadow(0 0 12px var(--cyan));
+}
+.touch-dpad-hub {
+  grid-area: hub;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 50%, #181822 0%, #08080d 80%);
+  border: 1px solid rgba(0, 245, 255, 0.15);
+  border-radius: 6px;
+  box-shadow:
+    inset 0 0 12px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.touch-dpad-hub-gem {
+  width: 12px;
+  height: 12px;
   background: var(--cyan);
-  color: #000;
+  box-shadow:
+    0 0 10px var(--cyan),
+    inset 0 0 4px rgba(0, 0, 0, 0.5);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  animation: pulse-led 2s ease-in-out infinite;
+}
+@keyframes pulse-led {
+  50% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
 }
 .touch-controls-button--action {
   min-width: 56px;
   min-height: 56px;
   border-radius: 50%;
+  border: 2px solid currentColor;
+  background:
+    radial-gradient(
+      circle at 32% 26%,
+      rgba(255, 255, 255, 0.25),
+      transparent 50%
+    ),
+    radial-gradient(circle at 50% 55%, var(--ab-mid), var(--ab-deep) 75%);
+  box-shadow:
+    0 6px 0 #050507,
+    0 0 22px var(--ab-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.4);
+  transition:
+    transform 80ms,
+    box-shadow 140ms;
   font-size: 9px;
   text-align: center;
   padding: 4px;
+  text-shadow:
+    0 0 8px currentColor,
+    0 0 18px currentColor,
+    0 1px 0 rgba(0, 0, 0, 0.6);
+}
+.touch-controls-button--cyan {
+  color: var(--cyan);
+  --ab-mid: rgba(0, 200, 230, 0.7);
+  --ab-deep: rgba(0, 50, 70, 0.95);
+  --ab-glow: rgba(0, 245, 255, 0.4);
+}
+.touch-controls-button--magenta {
+  color: var(--magenta);
+  --ab-mid: rgba(255, 0, 110, 0.7);
+  --ab-deep: rgba(110, 0, 40, 0.95);
+  --ab-glow: rgba(255, 0, 110, 0.4);
+}
+.touch-controls-button--action[data-pressed] {
+  transform: translateY(4px) scale(0.97);
+  box-shadow:
+    0 1px 0 #050507,
+    0 0 36px var(--ab-glow),
+    inset 0 0 18px rgba(0, 0, 0, 0.5);
+  text-shadow:
+    0 0 12px currentColor,
+    0 0 24px currentColor,
+    0 1px 0 rgba(0, 0, 0, 0.6);
 }
 
 /* touch bottom bar (pause + skin, replaces top HUD controls on touch) */
@@ -1184,11 +1321,58 @@ a {
   gap: 12px;
   margin-top: 14px;
 }
-.touch-bottom-bar .btn.yellow {
-  flex: 1;
-}
-.touch-bottom-bar select {
+.touch-pause-circle {
   flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid var(--yellow);
+  background:
+    radial-gradient(
+      circle at 32% 26%,
+      rgba(255, 255, 255, 0.25),
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 50% 55%,
+      rgba(245, 255, 0, 0.7),
+      rgba(70, 70, 0, 0.95) 75%
+    );
+  box-shadow:
+    0 6px 0 #050507,
+    0 0 22px rgba(245, 255, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.4);
+  color: var(--yellow);
+  font-size: 20px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  text-shadow:
+    0 0 8px currentColor,
+    0 0 18px currentColor,
+    0 1px 0 rgba(0, 0, 0, 0.6);
+  transition:
+    transform 80ms,
+    box-shadow 140ms;
+}
+.touch-pause-circle:active {
+  transform: translateY(4px) scale(0.97);
+  box-shadow:
+    0 1px 0 #050507,
+    0 0 36px rgba(245, 255, 0, 0.4),
+    inset 0 0 18px rgba(0, 0, 0, 0.5);
+}
+.touch-skin-select {
+  flex-shrink: 0;
+  background: linear-gradient(180deg, #1c1c28 0%, #0c0c14 100%);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
 }
 
 /* fake in-screen game */
@@ -1829,6 +2013,10 @@ a {
     padding: 14px;
     border-radius: 18px;
   }
+  .touch-controls-panel {
+    padding: 12px 14px 10px;
+    border-radius: 16px;
+  }
   .touch-controls-dpad {
     grid-template-columns: 40px 40px 40px;
     grid-template-rows: 40px 40px 40px;
@@ -1842,11 +2030,20 @@ a {
     min-width: 48px;
     min-height: 48px;
   }
+  .touch-dpad-hub-gem {
+    width: 10px;
+    height: 10px;
+  }
   .touch-bottom-bar {
     gap: 8px;
   }
-  .touch-bottom-bar .btn.yellow {
-    padding: 8px 10px;
+  .touch-pause-circle {
+    width: 48px;
+    height: 48px;
+    font-size: 16px;
+  }
+  .touch-skin-select {
+    padding: 4px 6px;
     font-size: 11px;
   }
 }
