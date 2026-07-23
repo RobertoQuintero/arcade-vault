@@ -118,6 +118,9 @@ export function TouchControls({ gameId, touchInputRef }: TouchControlsProps) {
         {dpadButtons.map((def) => (
           <TouchButton key={def.code} def={def} onInput={onInput} />
         ))}
+        <div className="touch-dpad-hub" aria-hidden="true">
+          <span className="touch-dpad-hub-gem" />
+        </div>
       </div>
       {actionButtons.length > 0 && (
         <div className="touch-controls-actions">
