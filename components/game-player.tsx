@@ -213,17 +213,9 @@ export function GamePlayer({ game }: { game: Game }) {
             </button>
             {hasSkins && (
               <select
-                className="mono"
+                className="touch-skin-select mono"
                 value={skin}
                 onChange={(e) => setSkin(e.target.value as SkinName)}
-                style={{
-                  background: "transparent",
-                  color: "var(--ink)",
-                  border: "1px solid var(--ink-dim)",
-                  borderRadius: 4,
-                  padding: "2px 6px",
-                  fontSize: 12,
-                }}
               >
                 {SKIN_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
