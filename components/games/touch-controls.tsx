@@ -119,27 +119,29 @@ export function TouchControls({ gameId, touchInputRef }: TouchControlsProps) {
   const actionButtons = layout.filter((b) => b.kind === "action");
 
   return (
-    <div className="touch-controls">
-      <div className="touch-controls-dpad">
-        {dpadButtons.map((def) => (
-          <TouchButton key={def.code} def={def} onInput={onInput} />
-        ))}
-        <div className="touch-dpad-hub" aria-hidden="true">
-          <span className="touch-dpad-hub-gem" />
-        </div>
-      </div>
-      {actionButtons.length > 0 && (
-        <div className="touch-controls-actions">
-          {actionButtons.map((def, i) => (
-            <TouchButton
-              key={def.code}
-              def={def}
-              onInput={onInput}
-              actionColor={ACTION_COLOR_BY_INDEX[i % 2]}
-            />
+    <div className="touch-controls-panel">
+      <div className="touch-controls">
+        <div className="touch-controls-dpad">
+          {dpadButtons.map((def) => (
+            <TouchButton key={def.code} def={def} onInput={onInput} />
           ))}
+          <div className="touch-dpad-hub" aria-hidden="true">
+            <span className="touch-dpad-hub-gem" />
+          </div>
         </div>
-      )}
+        {actionButtons.length > 0 && (
+          <div className="touch-controls-actions">
+            {actionButtons.map((def, i) => (
+              <TouchButton
+                key={def.code}
+                def={def}
+                onInput={onInput}
+                actionColor={ACTION_COLOR_BY_INDEX[i % 2]}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
