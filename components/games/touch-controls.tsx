@@ -10,6 +10,13 @@ export interface TouchButtonDef {
   kind: TouchButtonKind;
 }
 
+const DPAD_ARROW_PATH: Record<string, string> = {
+  ArrowUp: "M12 4 L20 16 L4 16 Z",
+  ArrowRight: "M8 4 L20 12 L8 20 Z",
+  ArrowDown: "M4 8 L20 8 L12 20 Z",
+  ArrowLeft: "M16 4 L16 20 L4 12 Z",
+};
+
 export const TOUCH_LAYOUTS: Record<string, TouchButtonDef[]> = {
   asteroids: [
     { code: "ArrowLeft", label: "◄", kind: "dpad" },
@@ -76,7 +83,17 @@ function TouchButton({ def, onInput }: TouchButtonProps) {
       onPointerLeave={handleRelease}
       onContextMenu={(e) => e.preventDefault()}
     >
-      {def.label}
+      {def.kind === "dpad" && DPAD_ARROW_PATH[def.code] ? (
+        <svg
+          className="touch-dpad-arrow"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path d={DPAD_ARROW_PATH[def.code]} fill="currentColor" />
+        </svg>
+      ) : (
+        def.label
+      )}
     </button>
   );
 }
