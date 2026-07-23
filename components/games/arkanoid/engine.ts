@@ -1,5 +1,9 @@
 // Motor puro de Arkanoid, portado de references/started-games/04-arkanoid/game.js y levels.js
 
+import type { SkinName } from "@/components/games/skins";
+
+export type { SkinName };
+
 export interface LevelBlock {
   col: number;
   row: number;
@@ -81,6 +85,76 @@ export const BLOCK_COLOR_HEX: Record<string, string> = {
   gray: "#9ca3af",
 };
 
+// ── Skins ────────────────────────────────────────────────────────────────────
+interface Glow {
+  blur: number;
+  color: string;
+}
+
+interface Skin {
+  background: string;
+  blockColors: Record<string, string>;
+  paddleColor: string;
+  paddleGlow: Glow | null;
+  ballColor: string;
+  ballGlow: Glow | null;
+  hudTextColor: string;
+  overlayBg: string;
+  overlayTextColor: string;
+}
+
+const SKINS: Record<SkinName, Skin> = {
+  clasico: {
+    background: "#000000",
+    blockColors: BLOCK_COLOR_HEX,
+    paddleColor: "#ffffff",
+    paddleGlow: null,
+    ballColor: "#ffffff",
+    ballGlow: null,
+    hudTextColor: "#ffffff",
+    overlayBg: "rgba(0, 0, 0, 0.6)",
+    overlayTextColor: "#ffffff",
+  },
+  neon: {
+    background: "#05050a",
+    blockColors: {
+      red: "#ff2d6a",
+      yellow: "#f5ff00",
+      cyan: "#00f5ff",
+      magenta: "#ff006e",
+      hotpink: "#ff5fd8",
+      green: "#00ff88",
+      gray: "#7dd3fc",
+    },
+    paddleColor: "#00f5ff",
+    paddleGlow: { blur: 16, color: "#00f5ff" },
+    ballColor: "#f5ff00",
+    ballGlow: { blur: 12, color: "#f5ff00" },
+    hudTextColor: "#e6e9ff",
+    overlayBg: "rgba(5, 5, 10, 0.75)",
+    overlayTextColor: "#ff006e",
+  },
+  retro: {
+    background: "#0b1a0f",
+    blockColors: {
+      red: "#33ff66",
+      yellow: "#22cc4d",
+      cyan: "#1a9938",
+      magenta: "#33ff66",
+      hotpink: "#22cc4d",
+      green: "#66ff99",
+      gray: "#1a7a3d",
+    },
+    paddleColor: "#33ff66",
+    paddleGlow: null,
+    ballColor: "#66ff99",
+    ballGlow: null,
+    hudTextColor: "#33ff66",
+    overlayBg: "rgba(11, 26, 15, 0.85)",
+    overlayTextColor: "#66ff99",
+  },
+};
+
 // ── Motor del juego ──────────────────────────────────────────────────────────
 export type EngineState = "playing" | "dead" | "gameover";
 
@@ -144,6 +218,7 @@ export class ArkanoidEngine {
 
   private keys: Record<string, boolean> = {};
   private soundEvents: SoundEvent[] = [];
+  private skin: Skin = SKINS.clasico;
 
   constructor(width: number, height: number) {
     this.width = width;
@@ -179,6 +254,10 @@ export class ArkanoidEngine {
 
   setKey(code: string, down: boolean): void {
     this.keys[code] = down;
+  }
+
+  setSkin(name: SkinName): void {
+    this.skin = SKINS[name];
   }
 
   setPaddleX(clientFraction: number): void {
@@ -322,9 +401,9 @@ export class ArkanoidEngine {
   }
 
   private drawOverlay(ctx: CanvasRenderingContext2D, message: string): void {
-    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.fillStyle = this.skin.overlayBg;
     ctx.fillRect(0, 0, this.width, this.height);
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = this.skin.overlayTextColor;
     ctx.font = `bold ${Math.round(this.width * 0.06)}px monospace`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -332,7 +411,7 @@ export class ArkanoidEngine {
   }
 
   private drawHUD(ctx: CanvasRenderingContext2D): void {
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = this.skin.hudTextColor;
     ctx.font = "bold 16px monospace";
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
@@ -342,7 +421,7 @@ export class ArkanoidEngine {
 
     const ballSize = 14;
     const ballSpacing = 4;
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = this.skin.hudTextColor;
     for (let i = 0; i < this.lives; i++) {
       const bx = this.width - 10 - (this.lives - i) * (ballSize + ballSpacing);
       ctx.beginPath();
@@ -358,18 +437,28 @@ export class ArkanoidEngine {
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = this.skin.background;
     ctx.fillRect(0, 0, this.width, this.height);
 
     for (const block of this.blocks) {
       if (!block.alive) continue;
-      ctx.fillStyle = BLOCK_COLOR_HEX[block.color] ?? "#fff";
+      ctx.fillStyle = this.skin.blockColors[block.color] ?? "#fff";
       ctx.fillRect(block.x, block.y, block.w - 2, block.h - 2);
     }
 
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = this.skin.paddleColor;
+    if (this.skin.paddleGlow) {
+      ctx.shadowBlur = this.skin.paddleGlow.blur;
+      ctx.shadowColor = this.skin.paddleGlow.color;
+    }
     ctx.fillRect(this.paddle.x, this.paddle.y, this.paddle.w, this.paddle.h);
+    ctx.shadowBlur = 0;
 
+    ctx.fillStyle = this.skin.ballColor;
+    if (this.skin.ballGlow) {
+      ctx.shadowBlur = this.skin.ballGlow.blur;
+      ctx.shadowColor = this.skin.ballGlow.color;
+    }
     ctx.beginPath();
     ctx.arc(
       this.ball.x + this.ball.w / 2,
@@ -379,6 +468,7 @@ export class ArkanoidEngine {
       Math.PI * 2,
     );
     ctx.fill();
+    ctx.shadowBlur = 0;
 
     if (this.state === "playing") this.drawHUD(ctx);
 

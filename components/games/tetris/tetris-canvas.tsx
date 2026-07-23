@@ -16,12 +16,16 @@ export interface TetrisCanvasProps {
   paused: boolean;
   onSnapshot: (snapshot: EngineSnapshot) => void;
   forceEndRef?: React.RefObject<(() => void) | null>;
+  touchInputRef?: React.RefObject<
+    ((code: string, down: boolean) => void) | null
+  >;
 }
 
 export function TetrisCanvas({
   paused,
   onSnapshot,
   forceEndRef,
+  touchInputRef,
 }: TetrisCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pausedRef = useRef(paused);
@@ -69,6 +73,8 @@ export function TetrisCanvas({
     window.addEventListener("keyup", handleKeyUp);
 
     if (forceEndRef) forceEndRef.current = () => engine.forceGameOver();
+    if (touchInputRef)
+      touchInputRef.current = (code, down) => engine.setKey(code, down);
 
     let lastTime: number | null = null;
     let raf = 0;
@@ -89,8 +95,9 @@ export function TetrisCanvas({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
       if (forceEndRef) forceEndRef.current = null;
+      if (touchInputRef) touchInputRef.current = null;
     };
-  }, [forceEndRef]);
+  }, [forceEndRef, touchInputRef]);
 
   return (
     <canvas

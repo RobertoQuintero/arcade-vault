@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { ArkanoidEngine, type EngineSnapshot, type SoundEvent } from "./engine";
+import {
+  ArkanoidEngine,
+  type EngineSnapshot,
+  type SkinName,
+  type SoundEvent,
+} from "./engine";
 
 const CAPTURED_KEYS = new Set(["ArrowLeft", "ArrowRight"]);
 
@@ -14,16 +19,20 @@ export interface ArkanoidCanvasProps {
   paused: boolean;
   onSnapshot: (snapshot: EngineSnapshot) => void;
   forceEndRef?: React.RefObject<(() => void) | null>;
+  skin?: SkinName;
 }
 
 export function ArkanoidCanvas({
   paused,
   onSnapshot,
   forceEndRef,
+  skin = "clasico",
 }: ArkanoidCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pausedRef = useRef(paused);
   const onSnapshotRef = useRef(onSnapshot);
+  const skinRef = useRef(skin);
+  const engineRef = useRef<ArkanoidEngine | null>(null);
 
   useEffect(() => {
     pausedRef.current = paused;
@@ -32,6 +41,11 @@ export function ArkanoidCanvas({
   useEffect(() => {
     onSnapshotRef.current = onSnapshot;
   }, [onSnapshot]);
+
+  useEffect(() => {
+    skinRef.current = skin;
+    engineRef.current?.setSkin(skin);
+  }, [skin]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -44,6 +58,8 @@ export function ArkanoidCanvas({
     canvas.width = width;
     canvas.height = height;
     const engine = new ArkanoidEngine(width, height);
+    engine.setSkin(skinRef.current);
+    engineRef.current = engine;
 
     const AudioContextCtor =
       window.AudioContext ||
@@ -110,6 +126,17 @@ export function ArkanoidCanvas({
     };
     canvas.addEventListener("mousemove", handleMouseMove);
 
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      if (!touch) return;
+      const rect = canvas.getBoundingClientRect();
+      const fraction = (touch.clientX - rect.left) / rect.width;
+      engine.setPaddleX(fraction);
+    };
+    canvas.addEventListener("touchstart", handleTouchMove, { passive: false });
+    canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
+
     if (forceEndRef) forceEndRef.current = () => engine.forceGameOver();
 
     let lastTime: number | null = null;
@@ -133,8 +160,11 @@ export function ArkanoidCanvas({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
       canvas.removeEventListener("mousemove", handleMouseMove);
+      canvas.removeEventListener("touchstart", handleTouchMove);
+      canvas.removeEventListener("touchmove", handleTouchMove);
       if (forceEndRef) forceEndRef.current = null;
       if (audioCtx) audioCtx.close().catch(() => {});
+      engineRef.current = null;
     };
   }, [forceEndRef]);
 
@@ -147,6 +177,7 @@ export function ArkanoidCanvas({
         width: "100%",
         height: "100%",
         display: "block",
+        touchAction: "none",
       }}
     />
   );

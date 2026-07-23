@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { AsteroidsEngine, type EngineSnapshot } from "./engine";
+import { AsteroidsEngine, type EngineSnapshot, type SkinName } from "./engine";
 
 const CAPTURED_KEYS = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "Space"]);
 
@@ -9,16 +9,24 @@ export interface AsteroidsCanvasProps {
   paused: boolean;
   onSnapshot: (snapshot: EngineSnapshot) => void;
   forceEndRef?: React.RefObject<(() => void) | null>;
+  skin?: SkinName;
+  touchInputRef?: React.RefObject<
+    ((code: string, down: boolean) => void) | null
+  >;
 }
 
 export function AsteroidsCanvas({
   paused,
   onSnapshot,
   forceEndRef,
+  skin = "clasico",
+  touchInputRef,
 }: AsteroidsCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pausedRef = useRef(paused);
   const onSnapshotRef = useRef(onSnapshot);
+  const skinRef = useRef(skin);
+  const engineRef = useRef<AsteroidsEngine | null>(null);
 
   useEffect(() => {
     pausedRef.current = paused;
@@ -27,6 +35,11 @@ export function AsteroidsCanvas({
   useEffect(() => {
     onSnapshotRef.current = onSnapshot;
   }, [onSnapshot]);
+
+  useEffect(() => {
+    skinRef.current = skin;
+    engineRef.current?.setSkin(skin);
+  }, [skin]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -39,6 +52,8 @@ export function AsteroidsCanvas({
     canvas.width = width;
     canvas.height = height;
     const engine = new AsteroidsEngine(width, height);
+    engine.setSkin(skinRef.current);
+    engineRef.current = engine;
 
     const resizeObserver = new ResizeObserver((entries) => {
       const entry = entries[0];
@@ -62,6 +77,8 @@ export function AsteroidsCanvas({
     window.addEventListener("keyup", handleKeyUp);
 
     if (forceEndRef) forceEndRef.current = () => engine.forceGameOver();
+    if (touchInputRef)
+      touchInputRef.current = (code, down) => engine.setKey(code, down);
 
     let lastTime: number | null = null;
     let raf = 0;
@@ -82,8 +99,10 @@ export function AsteroidsCanvas({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
       if (forceEndRef) forceEndRef.current = null;
+      if (touchInputRef) touchInputRef.current = null;
+      engineRef.current = null;
     };
-  }, [forceEndRef]);
+  }, [forceEndRef, touchInputRef]);
 
   return (
     <canvas
