@@ -1164,10 +1164,6 @@ a {
   user-select: none;
   -webkit-touch-callout: none;
 }
-.touch-controls-button:active {
-  background: var(--cyan);
-  color: #000;
-}
 .touch-controls-button--dpad {
   background: linear-gradient(180deg, #1a1a25, #0a0a12);
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -1189,7 +1185,7 @@ a {
   height: 22px;
   transition: filter 140ms;
 }
-.touch-controls-button--dpad:active {
+.touch-controls-button--dpad[data-pressed] {
   transform: translateY(3px);
   color: var(--cyan);
   background: linear-gradient(180deg, #08161e, #030a0e);
@@ -1199,7 +1195,7 @@ a {
     inset 0 0 16px rgba(0, 245, 255, 0.45),
     0 0 16px rgba(0, 245, 255, 0.5);
 }
-.touch-controls-button--dpad:active .touch-dpad-arrow {
+.touch-controls-button--dpad[data-pressed] .touch-dpad-arrow {
   filter: drop-shadow(0 0 6px var(--cyan)) drop-shadow(0 0 12px var(--cyan));
 }
 .touch-dpad-hub {
@@ -1269,6 +1265,17 @@ a {
   --ab-mid: rgba(255, 0, 110, 0.7);
   --ab-deep: rgba(110, 0, 40, 0.95);
   --ab-glow: rgba(255, 0, 110, 0.4);
+}
+.touch-controls-button--action[data-pressed] {
+  transform: translateY(4px) scale(0.97);
+  box-shadow:
+    0 1px 0 #050507,
+    0 0 36px var(--ab-glow),
+    inset 0 0 18px rgba(0, 0, 0, 0.5);
+  text-shadow:
+    0 0 12px currentColor,
+    0 0 24px currentColor,
+    0 1px 0 rgba(0, 0, 0, 0.6);
 }
 
 /* touch bottom bar (pause + skin, replaces top HUD controls on touch) */

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, type RefObject } from "react";
+import { useCallback, useRef, useState, type RefObject } from "react";
 
 export type TouchButtonKind = "dpad" | "action";
 
@@ -61,16 +61,21 @@ interface TouchButtonProps {
 
 function TouchButton({ def, onInput, actionColor }: TouchButtonProps) {
   const pointersRef = useRef<Set<number>>(new Set());
+  const [pressed, setPressed] = useState(false);
 
   const handlePress = (e: React.PointerEvent<HTMLButtonElement>) => {
     e.preventDefault();
     if (pointersRef.current.size === 0) onInput(def.code, true);
     pointersRef.current.add(e.pointerId);
+    setPressed(true);
   };
 
   const handleRelease = (e: React.PointerEvent<HTMLButtonElement>) => {
     if (!pointersRef.current.delete(e.pointerId)) return;
-    if (pointersRef.current.size === 0) onInput(def.code, false);
+    if (pointersRef.current.size === 0) {
+      onInput(def.code, false);
+      setPressed(false);
+    }
   };
 
   const gridArea = DPAD_GRID_AREA[def.code];
@@ -83,6 +88,7 @@ function TouchButton({ def, onInput, actionColor }: TouchButtonProps) {
       type="button"
       className={`touch-controls-button touch-controls-button--${def.kind}${colorClass}`}
       style={gridArea ? { gridArea } : undefined}
+      data-pressed={pressed || undefined}
       onPointerDown={handlePress}
       onPointerUp={handleRelease}
       onPointerCancel={handleRelease}
