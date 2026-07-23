@@ -1234,9 +1234,41 @@ a {
   min-width: 56px;
   min-height: 56px;
   border-radius: 50%;
+  border: 2px solid currentColor;
+  background:
+    radial-gradient(
+      circle at 32% 26%,
+      rgba(255, 255, 255, 0.25),
+      transparent 50%
+    ),
+    radial-gradient(circle at 50% 55%, var(--ab-mid), var(--ab-deep) 75%);
+  box-shadow:
+    0 6px 0 #050507,
+    0 0 22px var(--ab-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.4);
+  transition:
+    transform 80ms,
+    box-shadow 140ms;
   font-size: 9px;
   text-align: center;
   padding: 4px;
+  text-shadow:
+    0 0 8px currentColor,
+    0 0 18px currentColor,
+    0 1px 0 rgba(0, 0, 0, 0.6);
+}
+.touch-controls-button--cyan {
+  color: var(--cyan);
+  --ab-mid: rgba(0, 200, 230, 0.7);
+  --ab-deep: rgba(0, 50, 70, 0.95);
+  --ab-glow: rgba(0, 245, 255, 0.4);
+}
+.touch-controls-button--magenta {
+  color: var(--magenta);
+  --ab-mid: rgba(255, 0, 110, 0.7);
+  --ab-deep: rgba(110, 0, 40, 0.95);
+  --ab-glow: rgba(255, 0, 110, 0.4);
 }
 
 /* touch bottom bar (pause + skin, replaces top HUD controls on touch) */
