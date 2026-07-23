@@ -1,6 +1,6 @@
 # 12 — Layout táctil del reproductor (pad inferior)
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Dependencias:** SPEC 11 (controles táctiles — overlay de D-pad/botones, detección `isTouchDevice` vía `matchMedia("(pointer: coarse)")`, `GAMES_WITH_SKINS`/selector de skin)
 - **Fecha:** 2026-07-23
 
