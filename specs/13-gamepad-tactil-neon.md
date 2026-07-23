@@ -1,6 +1,6 @@
 # 13 — Rediseño visual del gamepad táctil (estilo neón)
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Dependencias:** SPEC 11 (controles táctiles — `touch-controls.tsx`, `TOUCH_LAYOUTS`, `touchInputRef`), SPEC 12 (layout táctil del pad — `.touch-bottom-bar`, reubicación de PAUSA/skin)
 - **Fecha:** 2026-07-23
 
