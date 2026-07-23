@@ -1176,6 +1176,21 @@ a {
   padding: 4px;
 }
 
+/* touch bottom bar (pause + skin, replaces top HUD controls on touch) */
+.touch-bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+.touch-bottom-bar .btn.yellow {
+  flex: 1;
+}
+.touch-bottom-bar select {
+  flex-shrink: 0;
+}
+
 /* fake in-screen game */
 .game-arena {
   position: absolute;
@@ -1826,6 +1841,13 @@ a {
   .touch-controls-button--action {
     min-width: 48px;
     min-height: 48px;
+  }
+  .touch-bottom-bar {
+    gap: 8px;
+  }
+  .touch-bottom-bar .btn.yellow {
+    padding: 8px 10px;
+    font-size: 11px;
   }
 }
 
