@@ -46,6 +46,8 @@ const DPAD_GRID_AREA: Record<string, string> = {
   ArrowRight: "right",
 };
 
+const ACTION_COLOR_BY_INDEX = ["cyan", "magenta"] as const;
+
 export interface TouchControlsProps {
   gameId: string;
   touchInputRef: RefObject<((code: string, down: boolean) => void) | null>;
@@ -54,9 +56,10 @@ export interface TouchControlsProps {
 interface TouchButtonProps {
   def: TouchButtonDef;
   onInput: (code: string, down: boolean) => void;
+  actionColor?: (typeof ACTION_COLOR_BY_INDEX)[number];
 }
 
-function TouchButton({ def, onInput }: TouchButtonProps) {
+function TouchButton({ def, onInput, actionColor }: TouchButtonProps) {
   const pointersRef = useRef<Set<number>>(new Set());
 
   const handlePress = (e: React.PointerEvent<HTMLButtonElement>) => {
@@ -71,11 +74,14 @@ function TouchButton({ def, onInput }: TouchButtonProps) {
   };
 
   const gridArea = DPAD_GRID_AREA[def.code];
+  const colorClass = actionColor
+    ? ` touch-controls-button--${actionColor}`
+    : "";
 
   return (
     <button
       type="button"
-      className={`touch-controls-button touch-controls-button--${def.kind}`}
+      className={`touch-controls-button touch-controls-button--${def.kind}${colorClass}`}
       style={gridArea ? { gridArea } : undefined}
       onPointerDown={handlePress}
       onPointerUp={handleRelease}
@@ -124,8 +130,13 @@ export function TouchControls({ gameId, touchInputRef }: TouchControlsProps) {
       </div>
       {actionButtons.length > 0 && (
         <div className="touch-controls-actions">
-          {actionButtons.map((def) => (
-            <TouchButton key={def.code} def={def} onInput={onInput} />
+          {actionButtons.map((def, i) => (
+            <TouchButton
+              key={def.code}
+              def={def}
+              onInput={onInput}
+              actionColor={ACTION_COLOR_BY_INDEX[i % 2]}
+            />
           ))}
         </div>
       )}
