@@ -2,6 +2,7 @@ import type { ComponentType, RefObject } from "react";
 import { ArkanoidCanvas } from "@/components/games/arkanoid/arkanoid-canvas";
 import { AsteroidsCanvas } from "@/components/games/asteroids/asteroids-canvas";
 import type { EngineSnapshot } from "@/components/games/asteroids/engine";
+import { FroggerCanvas } from "@/components/games/frogger/frogger-canvas";
 import type { SkinName } from "@/components/games/skins";
 import { SnakeCanvas } from "@/components/games/snake/snake-canvas";
 import { TetrisCanvas } from "@/components/games/tetris/tetris-canvas";
@@ -19,6 +20,7 @@ export const GAME_CANVASES: Record<string, ComponentType<GameCanvasProps>> = {
   tetris: TetrisCanvas,
   arkanoid: ArkanoidCanvas,
   snake: SnakeCanvas,
+  frogger: FroggerCanvas,
 };
 
 export type { EngineSnapshot };

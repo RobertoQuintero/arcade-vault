@@ -11,4 +11,9 @@ export const SKIN_OPTIONS: { value: SkinName; label: string }[] = [
 
 // ids de `games` cuyo motor soporta setSkin(); mantener en sync con
 // references/games-with-themes.md.
-export const GAMES_WITH_SKINS = new Set(["snake", "arkanoid", "asteroids"]);
+export const GAMES_WITH_SKINS = new Set([
+  "snake",
+  "arkanoid",
+  "asteroids",
+  "frogger",
+]);
