@@ -339,6 +339,8 @@ export class FroggerEngine {
   private keys: Record<string, boolean> = {};
   private justPressed: Record<string, boolean> = {};
   private skin: Skin = SKINS.clasico;
+  private skinName: SkinName = "clasico";
+  private spriteCache: Map<string, HTMLCanvasElement> = new Map();
 
   constructor(width: number, height: number) {
     this.width = width;
@@ -349,12 +351,15 @@ export class FroggerEngine {
 
   setSkin(name: SkinName): void {
     this.skin = SKINS[name];
+    this.skinName = name;
+    this.spriteCache.clear();
   }
 
   resize(width: number, height: number): void {
     this.width = width;
     this.height = height;
     this.recalcLayout();
+    this.spriteCache.clear();
   }
 
   setKey(code: string, down: boolean): void {
@@ -641,6 +646,75 @@ export class FroggerEngine {
     });
   }
 
+  private getOrCreateSprite(
+    key: string,
+    widthPx: number,
+    heightPx: number,
+    render: (c: CanvasRenderingContext2D, w: number, h: number) => void,
+  ): HTMLCanvasElement {
+    const cached = this.spriteCache.get(key);
+    if (cached) return cached;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = widthPx;
+    canvas.height = heightPx;
+    const c = canvas.getContext("2d")!;
+    render(c, widthPx, heightPx);
+    this.spriteCache.set(key, canvas);
+    return canvas;
+  }
+
+  private renderEntitySprite(
+    c: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    e: Entity,
+  ): void {
+    if (this.skin.glow) {
+      c.shadowBlur = this.skin.glowBlur;
+    }
+
+    if (e.type === "car") {
+      c.shadowColor =
+        this.skin.carColors[(e.variant ?? 0) % this.skin.carColors.length];
+      c.fillStyle = c.shadowColor;
+      c.fillRect(2, 6, w - 4, h - 12);
+      c.fillStyle = "#111";
+      c.beginPath();
+      c.arc(8, h - 6, 4, 0, Math.PI * 2);
+      c.arc(w - 8, h - 6, 4, 0, Math.PI * 2);
+      c.fill();
+    } else if (e.type === "truck") {
+      c.shadowColor = this.skin.truckColor;
+      c.fillStyle = this.skin.truckColor;
+      c.fillRect(2, 4, w - 4, h - 8);
+      c.fillStyle = "#333";
+      c.fillRect(2, 4, this.cellSize * 0.6, h - 8);
+    } else if (e.type === "log") {
+      c.shadowColor = this.skin.logColor;
+      c.fillStyle = this.skin.logColor;
+      c.fillRect(0, 6, w, h - 12);
+      c.strokeStyle = "rgba(0,0,0,0.35)";
+      c.lineWidth = 1;
+      for (let lx = 6; lx < w; lx += 10) {
+        c.beginPath();
+        c.moveTo(lx, 6);
+        c.lineTo(lx, h - 6);
+        c.stroke();
+      }
+    } else {
+      const color = e.submerged
+        ? this.skin.turtleSubmergedColor
+        : this.skin.turtleColor;
+      c.shadowColor = color;
+      c.fillStyle = color;
+      c.beginPath();
+      c.arc(w / 2, h / 2, this.cellSize * 0.38, 0, Math.PI * 2);
+      c.fill();
+    }
+    c.shadowBlur = 0;
+  }
+
   private drawEntity(
     ctx: CanvasRenderingContext2D,
     lane: Lane,
@@ -651,49 +725,11 @@ export class FroggerEngine {
     const w = e.width * this.cellSize;
     const h = this.cellSize;
 
-    if (this.skin.glow) {
-      ctx.shadowBlur = this.skin.glowBlur;
-    }
-
-    if (e.type === "car") {
-      ctx.shadowColor =
-        this.skin.carColors[(e.variant ?? 0) % this.skin.carColors.length];
-      ctx.fillStyle = ctx.shadowColor;
-      ctx.fillRect(x + 2, y + 6, w - 4, h - 12);
-      ctx.fillStyle = "#111";
-      ctx.beginPath();
-      ctx.arc(x + 8, y + h - 6, 4, 0, Math.PI * 2);
-      ctx.arc(x + w - 8, y + h - 6, 4, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (e.type === "truck") {
-      ctx.shadowColor = this.skin.truckColor;
-      ctx.fillStyle = this.skin.truckColor;
-      ctx.fillRect(x + 2, y + 4, w - 4, h - 8);
-      ctx.fillStyle = "#333";
-      ctx.fillRect(x + 2, y + 4, this.cellSize * 0.6, h - 8);
-    } else if (e.type === "log") {
-      ctx.shadowColor = this.skin.logColor;
-      ctx.fillStyle = this.skin.logColor;
-      ctx.fillRect(x, y + 6, w, h - 12);
-      ctx.strokeStyle = "rgba(0,0,0,0.35)";
-      ctx.lineWidth = 1;
-      for (let lx = x + 6; lx < x + w; lx += 10) {
-        ctx.beginPath();
-        ctx.moveTo(lx, y + 6);
-        ctx.lineTo(lx, y + h - 6);
-        ctx.stroke();
-      }
-    } else {
-      const color = e.submerged
-        ? this.skin.turtleSubmergedColor
-        : this.skin.turtleColor;
-      ctx.shadowColor = color;
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(x + w / 2, y + h / 2, this.cellSize * 0.38, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.shadowBlur = 0;
+    const key = `${e.type}:${e.variant ?? 0}:${e.submerged ?? false}:${e.width}:${this.cellSize}:${this.skinName}`;
+    const sprite = this.getOrCreateSprite(key, w, h, (c, sw, sh) =>
+      this.renderEntitySprite(c, sw, sh, e),
+    );
+    ctx.drawImage(sprite, x, y);
   }
 
   private drawLanes(ctx: CanvasRenderingContext2D): void {
