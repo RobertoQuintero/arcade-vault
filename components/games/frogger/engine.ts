@@ -181,3 +181,98 @@ export {
   TURTLE_SUBMERGED_MS,
   SKINS,
 };
+
+// ── Construcción de carriles ─────────────────────────────────────────────────
+
+const ROAD_ROWS = [
+  ROW_ROAD_TOP,
+  ROW_ROAD_TOP + 1,
+  ROW_ROAD_TOP + 2,
+  ROW_ROAD_TOP + 3,
+  ROW_ROAD_BOT,
+];
+const RIVER_ROWS = [
+  ROW_RIVER_TOP,
+  ROW_RIVER_TOP + 1,
+  ROW_RIVER_TOP + 2,
+  ROW_RIVER_TOP + 3,
+  ROW_RIVER_TOP + 4,
+  ROW_RIVER_BOT,
+];
+
+const ROAD_BASE_SPEEDS = [1.5, 2, 2.6, 3.3, 4];
+const RIVER_BASE_SPEEDS = [1, 1.4, 1.8, 2.2, 2.6, 3];
+
+function fillRoadEntities(dir: 1 | -1): Entity[] {
+  const entities: Entity[] = [];
+  let col = Math.random() * 3;
+  let variant = 0;
+  while (col < COLS + 3) {
+    const isTruck = Math.random() < 0.35;
+    const width = isTruck ? 2 + Math.floor(Math.random() * 2) : 1;
+    entities.push({
+      col: dir === 1 ? col : COLS - col - width,
+      width,
+      type: isTruck ? "truck" : "car",
+      variant: variant++,
+    });
+    col += width + 1.5 + Math.random() * 2;
+  }
+  return entities;
+}
+
+function fillRiverEntities(type: "log" | "turtle"): Entity[] {
+  const entities: Entity[] = [];
+  let col = Math.random() * 3;
+  while (col < COLS + 4) {
+    if (type === "log") {
+      const width = 2 + Math.floor(Math.random() * 3);
+      entities.push({ col, width, type: "log" });
+      col += width + 1 + Math.random() * 2;
+    } else {
+      const groupSize = 2 + Math.floor(Math.random() * 2);
+      const submergeOffset = Math.random() * TURTLE_VISIBLE_MS;
+      for (let i = 0; i < groupSize; i++) {
+        entities.push({
+          col: col + i,
+          width: 1,
+          type: "turtle",
+          submerged: false,
+          submergeT: submergeOffset,
+        });
+      }
+      col += groupSize + 1 + Math.random() * 2;
+    }
+  }
+  return entities;
+}
+
+export function buildLanes(level: number): Lane[] {
+  const speedMultiplier = LEVEL_SPEED_MULTIPLIER ** (level - 1);
+  const lanes: Lane[] = [];
+
+  ROAD_ROWS.forEach((row, i) => {
+    const dir: 1 | -1 = i % 2 === 0 ? 1 : -1;
+    lanes.push({
+      row,
+      speed: ROAD_BASE_SPEEDS[i] * speedMultiplier,
+      dir,
+      kind: "road",
+      entities: fillRoadEntities(dir),
+    });
+  });
+
+  RIVER_ROWS.forEach((row, i) => {
+    const dir: 1 | -1 = i % 2 === 0 ? -1 : 1;
+    const isTurtleLane = i % 3 === 2;
+    lanes.push({
+      row,
+      speed: RIVER_BASE_SPEEDS[i] * speedMultiplier,
+      dir,
+      kind: "river",
+      entities: fillRiverEntities(isTurtleLane ? "turtle" : "log"),
+    });
+  });
+
+  return lanes;
+}
