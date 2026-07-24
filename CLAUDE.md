@@ -16,12 +16,14 @@ No test runner is configured. Verify changes with `npx tsc --noEmit` and by runn
 
 - **Usa siempre `/frontend-design` para diseñar la interfaz de usuario** o arte de covers.
 - **`/game-impl`** (`.claude/skills/game-impl/`) — the project's own spec-first workflow to add a real game end-to-end: writes the spec, ports/creates the engine, canvas component, registry entry, cover, and the Supabase `games` row. Read its `SKILL.md` and `game-integration.md` (the engine/canvas/registry/migration templates) before adding any game. It codifies the pattern established by Asteroids and specs 04–06.
+- **`/spec-impl-game`** (`.claude/skills/spec-impl-game/`) — variant of `/spec-impl` specialized for approved game specs (the ones `/game-impl` produces, e.g. `07-tetris-real`, `08-arkanoid-real`, `10-snake-real`). Validates the spec is "Aprobado", creates its branch, implements the plan step by step with pauses and, on completion, chains two read-only audits in series (never in parallel) — `skin-designer` then `mobile-porter` — over the just-implemented game.
 
 ## Agents
 
 - **`game-planner`** (`.claude/agents/game-planner.md`) — recommendation-only subagent that decides which classic arcade game to add next. Reasons about category balance, fit with the engine contract, and estimated effort; keeps a persistent memory of past suggestions in `references/game-planner-memory.md` so it doesn't repeat proposed/discarded games across sessions. It never implements — its output feeds into `/game-impl`.
 - **`skin-designer`** (`.claude/agents/skin-designer.md`) — read-only auditor that checks a game (or all of them) has at least 3 visual skins — `neon`, `retro`, `clasico` (default) — per the `SKINS` map + `setSkin` convention in the engine. Reports a verdict per game and designs the palettes for any missing skins. It never implements — its report feeds into implementation work.
 - **`game-jam`** (`.claude/agents/game-jam.md`) — given a theme, invents 2-3 arcade games that fit it and writes, per game, `specs/game-jam/<game_id>/` with at least 2 full specs (variants of the same game, same `games` row, diverging mechanics) in the format of specs 07/08/10. Only writes under `specs/game-jam/`. It never implements — pick a variant and feed it to `/game-impl`.
+- **`mobile-porter`** (`.claude/agents/mobile-porter.md`) — read-only auditor that checks a game's (or all games') player looks and works correctly on mobile/touch, per the SPEC 12 layout convention (top HUD without pause/skin on touch, `.touch-bottom-bar`, hidden `.crt-bottom`, D-pad/buttons from SPEC 11). Reports a verdict per game with `file:line` findings. It never implements — its report feeds into implementation work.
 
 ## Stack
 
