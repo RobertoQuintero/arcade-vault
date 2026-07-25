@@ -1,18 +1,33 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState, useTransition } from "react";
 import { setUser } from "@/lib/storage";
-import { signIn, signUp } from "./actions";
+import { createClient } from "@/lib/supabase/client";
+import { resetPassword, signIn, signUp, type AuthResult } from "./actions";
 
 export default function AuthPage() {
+  return (
+    <Suspense fallback={null}>
+      <AuthForm />
+    </Suspense>
+  );
+}
+
+function AuthForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const resetOk = searchParams.get("reset") === "ok";
   const [tab, setTab] = useState<"in" | "up">("in");
   const [user, setUserField] = useState("");
   const [pass, setPass] = useState("");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [showReset, setShowReset] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetMessage, setResetMessage] = useState<AuthResult | null>(null);
+  const [isResetPending, startResetTransition] = useTransition();
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +52,24 @@ export default function AuthPage() {
   const playAsGuest = () => {
     setUser({ name: "INVITADO" });
     router.push("/");
+  };
+
+  const submitReset = (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetMessage(null);
+
+    startResetTransition(async () => {
+      const result = await resetPassword(resetEmail);
+      setResetMessage(result);
+    });
+  };
+
+  const signInWithOAuth = (provider: "google" | "github") => {
+    const supabase = createClient();
+    supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
   };
 
   return (
@@ -72,6 +105,20 @@ export default function AuthPage() {
             CREAR CUENTA
           </button>
         </div>
+
+        {tab === "in" && resetOk && (
+          <div
+            className="mono"
+            style={{
+              color: "var(--cyan)",
+              fontSize: 12,
+              marginTop: 10,
+              textAlign: "center",
+            }}
+          >
+            CONTRASEÑA ACTUALIZADA. INICIA SESIÓN CON TU NUEVA CONTRASEÑA.
+          </div>
+        )}
 
         <form onSubmit={submit}>
           {tab === "up" && (
@@ -129,6 +176,70 @@ export default function AuthPage() {
           </button>
         </form>
 
+        {tab === "in" && !showReset && (
+          <button
+            type="button"
+            className="mono"
+            onClick={() => {
+              setShowReset(true);
+              setResetMessage(null);
+            }}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "var(--ink-faint)",
+              fontSize: 11,
+              letterSpacing: "0.08em",
+              marginTop: 10,
+              textAlign: "center",
+              width: "100%",
+            }}
+          >
+            ¿OLVIDASTE TU CONTRASEÑA?
+          </button>
+        )}
+
+        {tab === "in" && showReset && (
+          <form onSubmit={submitReset} className="slide-in">
+            <div className="field" style={{ marginTop: 10 }}>
+              <label>Correo electrónico</label>
+              <input
+                type="email"
+                required
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                placeholder="jugador@vault.gg"
+              />
+            </div>
+
+            {resetMessage && (
+              <div
+                className="mono"
+                style={{
+                  color:
+                    resetMessage.status === "error"
+                      ? "var(--magenta)"
+                      : "var(--cyan)",
+                  fontSize: 12,
+                  marginTop: 4,
+                }}
+              >
+                {resetMessage.message}
+              </div>
+            )}
+
+            <button
+              className="btn ghost"
+              type="submit"
+              disabled={isResetPending}
+              style={{ width: "100%", marginTop: 8 }}
+            >
+              {isResetPending ? "ENVIANDO…" : "ENVIAR ENLACE"}
+            </button>
+          </form>
+        )}
+
         <button
           className="btn ghost"
           style={{ width: "100%", marginTop: 10 }}
@@ -139,10 +250,18 @@ export default function AuthPage() {
 
         <div className="auth-divider">O CONTINÚA CON</div>
         <div className="social">
-          <button className="btn ghost" type="button">
+          <button
+            className="btn ghost"
+            type="button"
+            onClick={() => signInWithOAuth("google")}
+          >
             ◆ GOOGLE
           </button>
-          <button className="btn ghost" type="button">
+          <button
+            className="btn ghost"
+            type="button"
+            onClick={() => signInWithOAuth("github")}
+          >
             ▣ GITHUB
           </button>
         </div>
