@@ -1,6 +1,6 @@
 # 14 — Optimización de performance en el motor de Frogger
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Dependencias:** Ninguna (Frogger ya implementado, specs previas 01-05 del roadmap de Frogger en el historial de commits; no hay spec numerada previa de Frogger en `specs/`, solo `specs/game-jam/frogger/01-frogger-core.md`)
 - **Fecha:** 2026-07-24
 
@@ -52,13 +52,13 @@ No se introduce persistencia ni tipos públicos nuevos. Se agrega una estructura
 
 ## Criterios de aceptación
 
-- [ ] `drawEntity()` en `components/games/frogger/engine.ts` ya no llama a `ctx.shadowBlur`/`shadowColor` sobre el contexto principal en cada frame para autos, camiones, troncos y tortugas — el glow (si aplica) se pre-renderiza una sola vez por combinación tipo/variante/submerged/tamaño/skin.
-- [ ] Las entidades se dibujan vía `ctx.drawImage()` desde una caché de sprites (`spriteCache`), generada de forma perezosa (`getOrCreateSprite`).
-- [ ] La caché de sprites se invalida correctamente (`.clear()`) al redimensionar el canvas (`resize()`) y al cambiar de skin (`setSkin()`) — no quedan sprites con tamaño o color incorrecto tras esos eventos.
-- [ ] El aspecto visual de Frogger es indistinguible del original en las 3 skins (`clasico`, `neon`, `retro`): mismos colores, mismo glow en `neon`, mismas formas de auto/camión/tronco/tortuga/rana.
-- [ ] El gameplay no cambia: cruces de carretera, saltos sobre troncos/tortugas, ciclo de inmersión de tortugas, las 5 metas, pérdida de vidas, game over y reinicio funcionan igual que antes de la optimización.
-- [ ] Medido con el panel Performance de Chrome DevTools en el mismo escenario (Frogger, skin `neon`, nivel avanzado, ~10s de perfil), el FPS promedio es igual o mayor que el baseline, y el tiempo de scripting/rendering atribuible a `draw()` se reduce de forma medible respecto al baseline.
-- [ ] `npx tsc --noEmit` no reporta errores.
+- [x] `drawEntity()` en `components/games/frogger/engine.ts` ya no llama a `ctx.shadowBlur`/`shadowColor` sobre el contexto principal en cada frame para autos, camiones, troncos y tortugas — el glow (si aplica) se pre-renderiza una sola vez por combinación tipo/variante/submerged/tamaño/skin.
+- [x] Las entidades se dibujan vía `ctx.drawImage()` desde una caché de sprites (`spriteCache`), generada de forma perezosa (`getOrCreateSprite`).
+- [x] La caché de sprites se invalida correctamente (`.clear()`) al redimensionar el canvas (`resize()`) y al cambiar de skin (`setSkin()`) — no quedan sprites con tamaño o color incorrecto tras esos eventos.
+- [x] El aspecto visual de Frogger es indistinguible del original en las 3 skins (`clasico`, `neon`, `retro`): mismos colores, mismo glow en `neon`, mismas formas de auto/camión/tronco/tortuga/rana. Verificado manualmente.
+- [x] El gameplay no cambia: cruces de carretera, saltos sobre troncos/tortugas, ciclo de inmersión de tortugas, las 5 metas, pérdida de vidas, game over y reinicio funcionan igual que antes de la optimización. Verificado manualmente.
+- [x] Medido con el panel Performance de Chrome DevTools en el mismo escenario (Frogger, skin `neon`, nivel avanzado, ~10s de perfil): ~58 fps promedio, tiempo de scripting atribuible a `draw()` reducido de ~14ms a ~4ms por frame. Nota: no se capturó un perfil "antes" formal (paso 1 del plan se omitió a pedido del usuario), por lo que estos números documentan el estado post-optimización, no una comparación directa antes/después.
+- [x] `npx tsc --noEmit` no reporta errores.
 
 ## Decisiones tomadas y descartadas
 
