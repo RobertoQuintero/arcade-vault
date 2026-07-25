@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { setUser } from "@/lib/storage";
+import { createClient } from "@/lib/supabase/client";
 import { signIn, signUp } from "./actions";
 
 export default function AuthPage() {
@@ -37,6 +38,14 @@ export default function AuthPage() {
   const playAsGuest = () => {
     setUser({ name: "INVITADO" });
     router.push("/");
+  };
+
+  const signInWithOAuth = (provider: "google" | "github") => {
+    const supabase = createClient();
+    supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
   };
 
   return (
@@ -139,10 +148,18 @@ export default function AuthPage() {
 
         <div className="auth-divider">O CONTINÚA CON</div>
         <div className="social">
-          <button className="btn ghost" type="button">
+          <button
+            className="btn ghost"
+            type="button"
+            onClick={() => signInWithOAuth("google")}
+          >
             ◆ GOOGLE
           </button>
-          <button className="btn ghost" type="button">
+          <button
+            className="btn ghost"
+            type="button"
+            onClick={() => signInWithOAuth("github")}
+          >
             ▣ GITHUB
           </button>
         </div>
