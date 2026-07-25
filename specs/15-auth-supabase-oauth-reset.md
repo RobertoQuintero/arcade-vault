@@ -1,6 +1,6 @@
 # 15 — Conectar autenticación de Arcade Vault a Supabase (OAuth + recuperación de contraseña)
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Dependencias:** Ninguna nueva. Se construye sobre la infraestructura ya existente: `app/auth/page.tsx` (UI con tabs login/registro + botones sociales sin lógica), `app/auth/actions.ts` (Server Actions `signIn`/`signUp`/`signOut` con email/password), `lib/session-user.ts` (`useSessionUser`/`nameFromSupabaseUser`), `lib/supabase/client.ts` y `server.ts`.
 - **Fecha:** 2026-07-25
 
