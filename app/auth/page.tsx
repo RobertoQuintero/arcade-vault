@@ -1,13 +1,23 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState, useTransition } from "react";
 import { setUser } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/client";
 import { resetPassword, signIn, signUp, type AuthResult } from "./actions";
 
 export default function AuthPage() {
+  return (
+    <Suspense fallback={null}>
+      <AuthForm />
+    </Suspense>
+  );
+}
+
+function AuthForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const resetOk = searchParams.get("reset") === "ok";
   const [tab, setTab] = useState<"in" | "up">("in");
   const [user, setUserField] = useState("");
   const [pass, setPass] = useState("");
@@ -95,6 +105,20 @@ export default function AuthPage() {
             CREAR CUENTA
           </button>
         </div>
+
+        {tab === "in" && resetOk && (
+          <div
+            className="mono"
+            style={{
+              color: "var(--cyan)",
+              fontSize: 12,
+              marginTop: 10,
+              textAlign: "center",
+            }}
+          >
+            CONTRASEÑA ACTUALIZADA. INICIA SESIÓN CON TU NUEVA CONTRASEÑA.
+          </div>
+        )}
 
         <form onSubmit={submit}>
           {tab === "up" && (
