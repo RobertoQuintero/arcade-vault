@@ -1,6 +1,14 @@
 "use server";
 
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+
+async function getOrigin(): Promise<string> {
+  const headerList = await headers();
+  const protocol = headerList.get("x-forwarded-proto") ?? "https";
+  const host = headerList.get("host");
+  return `${protocol}://${host}`;
+}
 
 export interface AuthResult {
   status: "success" | "error";
@@ -53,4 +61,44 @@ export async function signUp(
 export async function signOut(): Promise<void> {
   const supabase = await createClient();
   await supabase.auth.signOut();
+}
+
+export async function resetPassword(email: string): Promise<AuthResult> {
+  const supabase = await createClient();
+  const origin = await getOrigin();
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/reset-password`,
+  });
+
+  if (error) {
+    return {
+      status: "error",
+      message: "No se pudo procesar la solicitud. Intenta de nuevo.",
+    };
+  }
+
+  return {
+    status: "success",
+    message: "Si el correo existe, te enviamos un enlace de recuperación.",
+  };
+}
+
+export async function updatePassword(password: string): Promise<AuthResult> {
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    return {
+      status: "error",
+      message:
+        "No se pudo actualizar la contraseña. El enlace puede haber expirado.",
+    };
+  }
+
+  return {
+    status: "success",
+    message: "Contraseña actualizada correctamente.",
+  };
 }
