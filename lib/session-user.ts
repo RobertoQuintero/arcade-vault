@@ -13,11 +13,13 @@ export interface SessionUser {
 }
 
 function nameFromSupabaseUser(user: {
-  user_metadata?: { name?: string };
+  user_metadata?: { name?: string; full_name?: string; user_name?: string };
   email?: string;
 }): string {
   return (
     user.user_metadata?.name ||
+    user.user_metadata?.full_name ||
+    user.user_metadata?.user_name ||
     (user.email ?? "JUGADOR").split("@")[0].toUpperCase().slice(0, 10)
   );
 }
