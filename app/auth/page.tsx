@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { setUser } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/client";
-import { signIn, signUp } from "./actions";
+import { resetPassword, signIn, signUp, type AuthResult } from "./actions";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -14,6 +14,10 @@ export default function AuthPage() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [showReset, setShowReset] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetMessage, setResetMessage] = useState<AuthResult | null>(null);
+  const [isResetPending, startResetTransition] = useTransition();
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +42,16 @@ export default function AuthPage() {
   const playAsGuest = () => {
     setUser({ name: "INVITADO" });
     router.push("/");
+  };
+
+  const submitReset = (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetMessage(null);
+
+    startResetTransition(async () => {
+      const result = await resetPassword(resetEmail);
+      setResetMessage(result);
+    });
   };
 
   const signInWithOAuth = (provider: "google" | "github") => {
@@ -137,6 +151,70 @@ export default function AuthPage() {
                 : "CREAR Y JUGAR"}
           </button>
         </form>
+
+        {tab === "in" && !showReset && (
+          <button
+            type="button"
+            className="mono"
+            onClick={() => {
+              setShowReset(true);
+              setResetMessage(null);
+            }}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "var(--ink-faint)",
+              fontSize: 11,
+              letterSpacing: "0.08em",
+              marginTop: 10,
+              textAlign: "center",
+              width: "100%",
+            }}
+          >
+            ¿OLVIDASTE TU CONTRASEÑA?
+          </button>
+        )}
+
+        {tab === "in" && showReset && (
+          <form onSubmit={submitReset} className="slide-in">
+            <div className="field" style={{ marginTop: 10 }}>
+              <label>Correo electrónico</label>
+              <input
+                type="email"
+                required
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                placeholder="jugador@vault.gg"
+              />
+            </div>
+
+            {resetMessage && (
+              <div
+                className="mono"
+                style={{
+                  color:
+                    resetMessage.status === "error"
+                      ? "var(--magenta)"
+                      : "var(--cyan)",
+                  fontSize: 12,
+                  marginTop: 4,
+                }}
+              >
+                {resetMessage.message}
+              </div>
+            )}
+
+            <button
+              className="btn ghost"
+              type="submit"
+              disabled={isResetPending}
+              style={{ width: "100%", marginTop: 8 }}
+            >
+              {isResetPending ? "ENVIANDO…" : "ENVIAR ENLACE"}
+            </button>
+          </form>
+        )}
 
         <button
           className="btn ghost"
