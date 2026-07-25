@@ -130,6 +130,8 @@ export class SnakeEngine {
   private fruitsEaten = 0;
   private level = 1;
   private skin: Skin = SKINS.clasico;
+  private skinName: SkinName = "clasico";
+  private spriteCache: Map<string, HTMLCanvasElement> = new Map();
 
   constructor(width: number, height: number) {
     this.width = width;
@@ -144,12 +146,15 @@ export class SnakeEngine {
 
   setSkin(name: SkinName): void {
     this.skin = SKINS[name];
+    this.skinName = name;
+    this.spriteCache.clear();
   }
 
   resize(width: number, height: number): void {
     this.width = width;
     this.height = height;
     this.recalcLayout();
+    this.spriteCache.clear();
   }
 
   setKey(code: string, down: boolean): void {
@@ -302,38 +307,89 @@ export class SnakeEngine {
     }
   }
 
-  private drawGrid(ctx: CanvasRenderingContext2D): void {
-    ctx.strokeStyle = this.skin.grid;
-    ctx.lineWidth = 0.5;
-    for (let c = 1; c < COLS; c++) {
-      ctx.beginPath();
-      ctx.moveTo(c * this.cellSize, 0);
-      ctx.lineTo(c * this.cellSize, this.boardHeight);
-      ctx.stroke();
+  private getOrCreateSprite(
+    key: string,
+    widthPx: number,
+    heightPx: number,
+    render: (c: CanvasRenderingContext2D, w: number, h: number) => void,
+  ): HTMLCanvasElement {
+    const cached = this.spriteCache.get(key);
+    if (cached) return cached;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = widthPx;
+    canvas.height = heightPx;
+    const c = canvas.getContext("2d")!;
+    render(c, widthPx, heightPx);
+    this.spriteCache.set(key, canvas);
+    return canvas;
+  }
+
+  private renderGridSprite(c: CanvasRenderingContext2D): void {
+    c.strokeStyle = this.skin.grid;
+    c.lineWidth = 0.5;
+    for (let col = 1; col < COLS; col++) {
+      c.beginPath();
+      c.moveTo(col * this.cellSize, 0);
+      c.lineTo(col * this.cellSize, this.boardHeight);
+      c.stroke();
     }
-    for (let r = 1; r < ROWS; r++) {
-      ctx.beginPath();
-      ctx.moveTo(0, r * this.cellSize);
-      ctx.lineTo(this.boardWidth, r * this.cellSize);
-      ctx.stroke();
+    for (let row = 1; row < ROWS; row++) {
+      c.beginPath();
+      c.moveTo(0, row * this.cellSize);
+      c.lineTo(this.boardWidth, row * this.cellSize);
+      c.stroke();
     }
   }
 
-  private drawSnake(ctx: CanvasRenderingContext2D): void {
-    ctx.fillStyle = this.skin.snake;
+  private drawGrid(ctx: CanvasRenderingContext2D): void {
+    const key = `grid:${this.cellSize}:${this.skinName}`;
+    const sprite = this.getOrCreateSprite(
+      key,
+      this.boardWidth,
+      this.boardHeight,
+      (c) => this.renderGridSprite(c),
+    );
+    ctx.drawImage(sprite, 0, 0);
+  }
+
+  private renderSegmentSprite(c: CanvasRenderingContext2D): void {
+    c.fillStyle = this.skin.snake;
     if (this.skin.glow) {
-      ctx.shadowBlur = this.skin.glowBlur;
-      ctx.shadowColor = this.skin.snake;
+      c.shadowBlur = this.skin.glowBlur;
+      c.shadowColor = this.skin.snake;
     }
+    c.fillRect(1, 1, this.cellSize - 2, this.cellSize - 2);
+    c.shadowBlur = 0;
+  }
+
+  private drawSnake(ctx: CanvasRenderingContext2D): void {
+    const key = `segment:${this.cellSize}:${this.skinName}`;
+    const sprite = this.getOrCreateSprite(
+      key,
+      this.cellSize,
+      this.cellSize,
+      (c) => this.renderSegmentSprite(c),
+    );
     this.segments.forEach((s) => {
-      ctx.fillRect(
-        s.x * this.cellSize + 1,
-        s.y * this.cellSize + 1,
-        this.cellSize - 2,
-        this.cellSize - 2,
-      );
+      ctx.drawImage(sprite, s.x * this.cellSize, s.y * this.cellSize);
     });
-    ctx.shadowBlur = 0;
+  }
+
+  private renderFruitFallbackSprite(
+    c: CanvasRenderingContext2D,
+    size: number,
+  ): void {
+    c.fillStyle = this.skin.fruitFallback;
+    if (this.skin.glow) {
+      c.shadowBlur = this.skin.glowBlur;
+      c.shadowColor = this.skin.fruitFallback;
+    }
+    const r = this.cellSize * 0.4;
+    c.beginPath();
+    c.arc(size / 2, size / 2, r, 0, Math.PI * 2);
+    c.fill();
+    c.shadowBlur = 0;
   }
 
   private drawFruit(ctx: CanvasRenderingContext2D): void {
@@ -361,16 +417,18 @@ export class SnakeEngine {
         dh,
       );
     } else {
-      ctx.fillStyle = this.skin.fruitFallback;
-      if (this.skin.glow) {
-        ctx.shadowBlur = this.skin.glowBlur;
-        ctx.shadowColor = this.skin.fruitFallback;
-      }
-      const r = this.cellSize * 0.4;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
+      const key = `fruitFallback:${this.cellSize}:${this.skinName}`;
+      const fallbackSprite = this.getOrCreateSprite(
+        key,
+        this.cellSize,
+        this.cellSize,
+        (c, w) => this.renderFruitFallbackSprite(c, w),
+      );
+      ctx.drawImage(
+        fallbackSprite,
+        this.fruit.x * this.cellSize,
+        this.fruit.y * this.cellSize,
+      );
     }
   }
 

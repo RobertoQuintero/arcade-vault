@@ -105,18 +105,6 @@ export class Bullet {
     this.ttl -= dt;
     if (this.ttl <= 0) this.dead = true;
   }
-
-  draw(ctx: CanvasRenderingContext2D, skin: Skin): void {
-    ctx.fillStyle = skin.bullet;
-    if (skin.glow) {
-      ctx.shadowBlur = skin.glowBlur;
-      ctx.shadowColor = skin.bullet;
-    }
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-  }
 }
 
 // ── Asteroid ──────────────────────────────────────────────────────────────────
@@ -125,6 +113,8 @@ export const SPEEDS = [0, 85, 55, 32]; // velocidad base por tamaño
 export const POINTS = [0, 100, 50, 20]; // puntos por tamaño
 
 export class Asteroid {
+  private static nextId = 0;
+  readonly id: number;
   x: number;
   y: number;
   size: number;
@@ -137,6 +127,7 @@ export class Asteroid {
   verts: [number, number][];
 
   constructor(x: number, y: number, size = 3) {
+    this.id = Asteroid.nextId++;
     this.x = x;
     this.y = y;
     this.size = size;
@@ -172,26 +163,6 @@ export class Asteroid {
       new Asteroid(this.x, this.y, this.size - 1),
       new Asteroid(this.x, this.y, this.size - 1),
     ];
-  }
-
-  draw(ctx: CanvasRenderingContext2D, skin: Skin): void {
-    ctx.save();
-    ctx.translate(this.x, this.y);
-    ctx.rotate(this.rot);
-    ctx.strokeStyle = skin.asteroid;
-    ctx.lineWidth = 1.5;
-    ctx.lineJoin = "round";
-    if (skin.glow) {
-      ctx.shadowBlur = skin.glowBlur;
-      ctx.shadowColor = skin.asteroid;
-    }
-    ctx.beginPath();
-    ctx.moveTo(this.verts[0][0], this.verts[0][1]);
-    for (let i = 1; i < this.verts.length; i++)
-      ctx.lineTo(this.verts[i][0], this.verts[i][1]);
-    ctx.closePath();
-    ctx.stroke();
-    ctx.restore();
   }
 }
 
@@ -448,6 +419,8 @@ export class AsteroidsEngine {
   private keys: Record<string, boolean> = {};
   private justPressed: Record<string, boolean> = {};
   private skin: Skin = SKINS.clasico;
+  private skinName: SkinName = "clasico";
+  private spriteCache: Map<string, HTMLCanvasElement> = new Map();
 
   constructor(width: number, height: number) {
     this.width = width;
@@ -458,11 +431,14 @@ export class AsteroidsEngine {
 
   setSkin(name: SkinName): void {
     this.skin = SKINS[name];
+    this.skinName = name;
+    this.spriteCache.clear();
   }
 
   resize(width: number, height: number): void {
     this.width = width;
     this.height = height;
+    this.spriteCache.clear();
   }
 
   setKey(code: string, down: boolean): void {
@@ -622,6 +598,91 @@ export class AsteroidsEngine {
     if (this.asteroids.length === 0) this.nextLevel();
   }
 
+  private getOrCreateSprite(
+    key: string,
+    widthPx: number,
+    heightPx: number,
+    render: (c: CanvasRenderingContext2D, w: number, h: number) => void,
+  ): HTMLCanvasElement {
+    const cached = this.spriteCache.get(key);
+    if (cached) return cached;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = widthPx;
+    canvas.height = heightPx;
+    const c = canvas.getContext("2d")!;
+    render(c, widthPx, heightPx);
+    this.spriteCache.set(key, canvas);
+    return canvas;
+  }
+
+  // Renderiza el contorno del asteroide (con glow "horneado" si la skin lo
+  // usa) una sola vez por instancia+skin, en coordenadas relativas al centro
+  // del sprite. La rotación se aplica en drawAsteroid() vía ctx.rotate(),
+  // no en el sprite.
+  private renderAsteroidSprite(
+    c: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    a: Asteroid,
+  ): void {
+    c.translate(w / 2, h / 2);
+    c.strokeStyle = this.skin.asteroid;
+    c.lineWidth = 1.5;
+    c.lineJoin = "round";
+    if (this.skin.glow) {
+      c.shadowBlur = this.skin.glowBlur;
+      c.shadowColor = this.skin.asteroid;
+    }
+    c.beginPath();
+    c.moveTo(a.verts[0][0], a.verts[0][1]);
+    for (let i = 1; i < a.verts.length; i++)
+      c.lineTo(a.verts[i][0], a.verts[i][1]);
+    c.closePath();
+    c.stroke();
+  }
+
+  private drawAsteroid(ctx: CanvasRenderingContext2D, a: Asteroid): void {
+    const padding = this.skin.glow ? this.skin.glowBlur * 2 + 6 : 6;
+    const size = Math.ceil(a.radius * 2 + padding * 2);
+    const key = `ast:${a.id}:${this.skinName}`;
+    const sprite = this.getOrCreateSprite(key, size, size, (c, w, h) =>
+      this.renderAsteroidSprite(c, w, h, a),
+    );
+    ctx.save();
+    ctx.translate(a.x, a.y);
+    ctx.rotate(a.rot);
+    ctx.drawImage(sprite, -size / 2, -size / 2);
+    ctx.restore();
+  }
+
+  // Sprite del proyectil: compartido entre todas las balas vivas, solo
+  // depende de la skin activa (color/glow), no de la posición.
+  private renderBulletSprite(
+    c: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+  ): void {
+    c.fillStyle = this.skin.bullet;
+    if (this.skin.glow) {
+      c.shadowBlur = this.skin.glowBlur;
+      c.shadowColor = this.skin.bullet;
+    }
+    c.beginPath();
+    c.arc(w / 2, h / 2, 2, 0, Math.PI * 2);
+    c.fill();
+  }
+
+  private drawBullet(ctx: CanvasRenderingContext2D, b: Bullet): void {
+    const padding = this.skin.glow ? this.skin.glowBlur * 2 + 4 : 4;
+    const size = Math.ceil(b.radius * 2 + padding * 2);
+    const key = `bullet:${this.skinName}`;
+    const sprite = this.getOrCreateSprite(key, size, size, (c, w, h) =>
+      this.renderBulletSprite(c, w, h),
+    );
+    ctx.drawImage(sprite, b.x - size / 2, b.y - size / 2);
+  }
+
   private drawLifeIcon(
     ctx: CanvasRenderingContext2D,
     x: number,
@@ -687,9 +748,9 @@ export class AsteroidsEngine {
     ctx.fillRect(0, 0, this.width, this.height);
 
     this.particles.forEach((p) => p.draw(ctx, this.skin));
-    this.asteroids.forEach((a) => a.draw(ctx, this.skin));
+    for (const a of this.asteroids) this.drawAsteroid(ctx, a);
     this.powerUps.forEach((p) => p.draw(ctx, this.skin));
-    this.bullets.forEach((b) => b.draw(ctx, this.skin));
+    for (const b of this.bullets) this.drawBullet(ctx, b);
     this.ship.draw(ctx, this.skin);
 
     this.drawHUD(ctx);

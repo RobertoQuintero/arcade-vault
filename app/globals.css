@@ -12,6 +12,7 @@
   --magenta: #ff006e;
   --yellow: #f5ff00;
   --green: #00ff88;
+  --lime: #aef22c;
   --gold: #ffcf3a;
   --silver: #c7d0e0;
   --bronze: #d97a3a;
@@ -174,6 +175,12 @@ a {
   text-shadow:
     0 0 6px rgba(0, 255, 136, 0.6),
     0 0 16px rgba(0, 255, 136, 0.35);
+}
+.neon-lime {
+  color: var(--lime);
+  text-shadow:
+    0 0 6px rgba(174, 242, 44, 0.65),
+    0 0 16px rgba(174, 242, 44, 0.4);
 }
 
 .flicker {
@@ -728,6 +735,31 @@ a {
     linear-gradient(90deg, var(--green) 0 12px, transparent 12px)
       calc(20% + 28px) calc(50% - 12px) / 12px 12px no-repeat;
   filter: drop-shadow(0 0 6px rgba(0, 255, 136, 0.6));
+}
+
+.cover-frogger {
+  background: linear-gradient(
+    180deg,
+    #001a33 0 20%,
+    #101010 20% 80%,
+    #001a33 80% 100%
+  );
+}
+.cover-frogger::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, #ffcf3a 0 26px, transparent 26px) 8% 32% / 40px 6px
+      no-repeat,
+    linear-gradient(90deg, #ffcf3a 0 26px, transparent 26px) 40% 46% / 40px 6px
+      no-repeat,
+    linear-gradient(90deg, #ffcf3a 0 26px, transparent 26px) 20% 60% / 40px 6px
+      no-repeat,
+    linear-gradient(90deg, #ffcf3a 0 26px, transparent 26px) 55% 74% / 40px 6px
+      no-repeat,
+    radial-gradient(circle at 60% 50%, var(--lime) 0 12px, transparent 13px);
+  filter: drop-shadow(0 0 8px rgba(174, 242, 44, 0.55));
 }
 
 .cover-glot {
@@ -1943,6 +1975,9 @@ a {
 }
 .catalog-table .row .cat.green {
   color: var(--green);
+}
+.catalog-table .row .cat.lime {
+  color: var(--lime);
 }
 .catalog-table .row .best {
   font-family: var(--pixel);
