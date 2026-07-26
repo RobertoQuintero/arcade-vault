@@ -25,6 +25,7 @@ No test runner is configured. Verify changes with `npx tsc --noEmit` and by runn
 - **`game-jam`** — dado un tema, propone specs de juegos nuevos. Definición: `.claude/agents/game-jam.md`.
 - **`mobile-porter`** — audita el layout móvil/táctil de un juego. Definición: `.claude/agents/mobile-porter.md`.
 - **`game-performance-booster`** — audita e implementa optimizaciones de performance en el engine de un juego. Definición: `.claude/agents/game-performance-booster.md`.
+- **`security-auditor`** — audita RLS, advisors de Supabase y headers de seguridad, sin implementar fixes. Definición: `.claude/agents/security-auditor.md`.
 
 ## Stack
 
