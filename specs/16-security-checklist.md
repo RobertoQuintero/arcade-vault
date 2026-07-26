@@ -1,6 +1,6 @@
 # 16 — Checklist de seguridad básico
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Dependencias:** Ninguna nueva. Se apoya en la infraestructura existente: `supabase/migrations/` (RLS de `scores`/`games`), `next.config.ts`, y la configuración de Auth del proyecto Supabase (ya usada en la spec 15 para OAuth).
 - **Fecha:** 2026-07-25
 
@@ -77,3 +77,16 @@ No hay cambios a `public.scores` ni `public.games` (la policy de INSERT se deja 
 - **Password mínimo/leaked password protection/max signup rate no configurados**: hasta que el usuario ejecute el paso manual en el Dashboard, `auth_leaked_password_protection` y los otros dos ítems del checklist siguen sin resolver — el spec deja el código listo pero no puede forzar esa configuración. Mitigado documentando las instrucciones exactas (ver Decisiones/Plan) para que el usuario las aplique cuando pueda.
 - **`rls_auto_enable()` podría estar pensada para ser invocada manualmente por algún flujo externo que desconocemos** (por ejemplo, alguna automatización fuera del repo que la llama vía RPC): revocar `EXECUTE` rompería ese flujo. Riesgo bajo — es un patrón de event trigger interno estándar (auto-habilitar RLS en tablas nuevas), no un patrón de función pública típica; se verifica con `get_advisors` tras aplicar el cambio y queda revertible con un `GRANT EXECUTE` si hiciera falta.
 - **WARN de `scores` INSERT permanece visible en advisors indefinidamente**: al aceptarse como riesgo conocido, cualquier auditoría futura de seguridad lo volverá a reportar. Mitigado dejándolo documentado explícitamente en este spec como decisión tomada, para que no se interprete como una regresión sin investigar.
+
+## Pasos manuales pendientes (Supabase Dashboard)
+
+Estos ajustes no se gestionan por código en este repo (no hay `supabase/config.toml`) y deben aplicarse manualmente por el usuario en el Dashboard del proyecto:
+
+1. **Minimum password length → 8**
+   Dashboard → **Authentication** → **Settings** → sección **Password** → campo `Minimum password length` → establecer en `8` → Guardar.
+2. **Leaked password protection → habilitado**
+   Dashboard → **Authentication** → **Settings** → sección **Password** → activar el toggle `Leaked password protection` (verifica contra HaveIBeenPwned.org) → Guardar.
+3. **Max signup rate por IP → configurar un límite anti-bot**
+   Dashboard → **Authentication** → **Settings** → sección **Rate Limits** → campo `Rate limit for sign ups and sign ins` (o equivalente `IP-based rate limits`) → establecer un límite razonable (p. ej. no más de unos pocos signups por IP por hora) → Guardar.
+
+Hasta que estos tres pasos se completen, `mcp__supabase__get_advisors(type: "security")` seguirá reportando `auth_leaked_password_protection`. Esto es esperado y no representa una regresión de este spec.
