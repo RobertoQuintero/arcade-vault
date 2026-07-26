@@ -6,13 +6,16 @@
         "hooks": [
           {
             "type": "command",
-            "shell": "powershell",
             "command": "$j = $input | Out-String | ConvertFrom-Json; $f = $j.tool_input.file_path; if ($f) { try { npx prettier --write --ignore-unknown $f } catch {}; if ($f -match '\\.(js|jsx|ts|tsx|mjs|cjs)$') { try { npx eslint --fix $f } catch {} } }",
+            "shell": "powershell",
             "timeout": 60,
             "statusMessage": "Running Prettier + ESLint..."
           }
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "security-guidance@claude-plugins-official": true
   }
 }

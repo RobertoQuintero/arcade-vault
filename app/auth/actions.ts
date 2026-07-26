@@ -1,13 +1,15 @@
 "use server";
 
-import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 
-async function getOrigin(): Promise<string> {
-  const headerList = await headers();
-  const protocol = headerList.get("x-forwarded-proto") ?? "https";
-  const host = headerList.get("host");
-  return `${protocol}://${host}`;
+function getOrigin(): string {
+  const siteUrl = process.env.SITE_URL;
+
+  if (!siteUrl) {
+    throw new Error("SITE_URL environment variable is not defined.");
+  }
+
+  return siteUrl;
 }
 
 export interface AuthResult {
@@ -65,7 +67,7 @@ export async function signOut(): Promise<void> {
 
 export async function resetPassword(email: string): Promise<AuthResult> {
   const supabase = await createClient();
-  const origin = await getOrigin();
+  const origin = getOrigin();
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${origin}/auth/reset-password`,

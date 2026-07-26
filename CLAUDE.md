@@ -39,6 +39,7 @@ No test runner is configured. Verify changes with `npx tsc --noEmit` and by runn
 
 - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase client/server
 - `RESEND_API_KEY`, `CONTACT_TO_EMAIL` — contact form (`app/about/actions.ts`)
+- `SITE_URL` — server-only (no `NEXT_PUBLIC_` prefix), canonical site origin (e.g. `http://localhost:3000` in development). Used by `app/auth/actions.ts` and `app/auth/callback/route.ts` to build auth redirect URLs instead of trusting request headers (`Host`, `X-Forwarded-Proto`)
 
 ## Architecture
 
