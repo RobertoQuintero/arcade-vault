@@ -1,6 +1,6 @@
 # 17 — Fix: Host header injection en construcción de origin (auth)
 
-- **Estado:** Aprobado
+- **Estado:** Implementado
 - **Dependencias:** Ninguna nueva. Modifica infraestructura existente de la spec 15 (`app/auth/actions.ts`, `app/auth/callback/route.ts`).
 - **Fecha:** 2026-07-26
 
